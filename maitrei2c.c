@@ -80,8 +80,8 @@ static void maitreInitialiseHardware() {
     PIE1bits.ADIE = 1;      // Active les interruptions A/D
     IPR1bits.ADIP = 0;      // Interruptions A/D sont de basse priorité.
 
-    // Active le MSSP1 en mode Maître I2C:
-    TRISCbits.RC3 = 1;      // RC3 comme entrée...
+    // Active le MSSP1 en mode Maître I2C:           à contrôler !!!
+    TRISCbits.RC3 = 1;      // RC3 comme entrée...              
     ANSELCbits.ANSC3 = 0;   // ... digitale.
     TRISCbits.RC4 = 1;      // RC4 comme entrée...
     ANSELCbits.ANSC4 = 0;   // ... digitale.
@@ -112,7 +112,7 @@ void etablitValeurPortA(unsigned char adresse, unsigned char valeur) {
 void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
-    i2cRappelCommande(etablitValeurPortA);
+    i2cRappelCommande(etablitValeurPortA);   //créer une fonction remplaçant celle-là pour traiter (adresse I2c, valeur)
     pwmReinitialise();
 
     while(1);
