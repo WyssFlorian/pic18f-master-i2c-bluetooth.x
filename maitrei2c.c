@@ -6,30 +6,60 @@
  */
 void maitreInterruptions() {
     static I2cAdresse i2cAdresse;
-    
+    static int compteurCapteur = 0;
+
     if (INTCON3bits.INT1F) {
         INTCON3bits.INT1F = 0;
-        i2cAdresse = ECRITURE_SERVO_0;
+        switch ("commande_i2c"){                  // à définir
+            case "MOTEUR_DC":
+                i2cAdresse = ECRITURE_MOTEUR_DC;
+                break;
+            case "SERVO_DC":
+                i2cAdresse = ECRITURE_SERVO_DC;
+                break;
+            case "STEPPER":
+                i2cAdresse = ECRITURE_STEPPER;
+                break;
+            case "SERVO_ST":
+                i2cAdresse = ECRITURE_SERVO_ST
+                break;
+        }
         ADCON0bits.GO = 1;
     }
     
     if (INTCON3bits.INT2F) {
         INTCON3bits.INT2F = 0;
-        i2cAdresse = ECRITURE_SERVO_1;
+        
         ADCON0bits.GO = 1;
-    }
-    
+
     if (PIR1bits.ADIF) {
         i2cPrepareCommandePourEmission(i2cAdresse, ADRESH);
         PIR1bits.ADIF = 0;
     }
     
     if (PIR1bits.TMR1IF) {
-        TMR1 = 3035;
-        i2cPrepareCommandePourEmission(LECTURE_POTENTIOMETRE, 0);
         PIR1bits.TMR1IF = 0;
-    }
-
+        switch (compteurCapteur) {
+            case 0:
+                i2cPrepareCommandePourEmission(LECTURE_CAPTEUR_AV, 0);
+                break;
+            case 1:
+                i2cPrepareCommandePourEmission(LECTURE_CAPTEUR_DR, 0); 
+                break;
+            case 2:
+                i2cPrepareCommandePourEmission(LECTURE_CAPTEUR_AR, 0);
+                break;
+            case 3:
+                i2cPrepareCommandePourEmission(LECTURE_CAPTEUR_GA, 0);
+                break;
+        }
+        compteurCapteur ++;
+        
+        if (compteurCapteur > 3){
+            compteurCapteur = 0;
+        }
+     }
+    
     if (PIR1bits.SSP1IF) {
         i2cMaitre();
         PIR1bits.SSP1IF = 0;

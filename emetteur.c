@@ -1,5 +1,4 @@
 #include <xc.h>
-#include "pwm.h"
 
 /**
  * Initialise le hardware pour l'émetteur.
