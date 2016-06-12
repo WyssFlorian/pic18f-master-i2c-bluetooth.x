@@ -4,7 +4,6 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>emetteur.h</itemPath>
       <itemPath>recepteur_1.h</itemPath>
       <itemPath>file.h</itemPath>
       <itemPath>i2c.h</itemPath>
@@ -20,7 +19,6 @@
                    projectFiles="true">
       <itemPath>main.c</itemPath>
       <itemPath>recepteur_1.c</itemPath>
-      <itemPath>emetteur.c</itemPath>
       <itemPath>i2c.c</itemPath>
       <itemPath>file.c</itemPath>
       <itemPath>test.c</itemPath>

@@ -1,13 +1,14 @@
 #include <xc.h>
 #include "i2c.h"
 
+ static I2cAdresse i2cAdresse;
+ static int compteurCapteur = 0;
+ 
 /**
  * Point d'entrée des interruptions pour le maître.
  */
 void maitreInterruptions() {
-    static I2cAdresse i2cAdresse;
-    static int compteurCapteur = 0;
-
+  
     if (INTCON3bits.INT1F) {
         INTCON3bits.INT1F = 0;
         switch ("commande_i2c"){                  // à définir
@@ -21,7 +22,7 @@ void maitreInterruptions() {
                 i2cAdresse = ECRITURE_STEPPER;
                 break;
             case "SERVO_ST":
-                i2cAdresse = ECRITURE_SERVO_ST
+                i2cAdresse = ECRITURE_SERVO_ST;
                 break;
         }
         ADCON0bits.GO = 1;
@@ -64,14 +65,15 @@ void maitreInterruptions() {
         i2cMaitre();
         PIR1bits.SSP1IF = 0;
     }
+    }
 }
 
 /**
  * Initialise le hardware pour le maître.
  */
 static void maitreInitialiseHardware() {
-    // Prépare PORTA pour sortie digitale:
-    TRISA = 0xF0;
+    // Prépare PORTA pour entrée digitale:
+    TRISA = 0xF1;
     ANSELA = 0;
     
     // Prépare Temporisateur 1 pour 4 interruptions par sec.
@@ -84,7 +86,7 @@ static void maitreInitialiseHardware() {
     IPR1bits.TMR1IP = 0;    // ... de basse priorité.
     
     // Interruptions INT1 et INT2:
-    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...
+    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...         à modifier pour RC
     ANSELBbits.ANSB1 = 0;       // ... digitale.
     TRISBbits.RB2 = 1;          // Port RB2 comme entrée...
     ANSELBbits.ANSB2 = 0;       // ... digitale.
@@ -132,8 +134,8 @@ static void maitreInitialiseHardware() {
     INTCONbits.GIEL = 1;
 }
 
-void etablitValeurPortA(unsigned char adresse, unsigned char valeur) {
-    PORTA = valeur;
+void receptionSonar(unsigned char adresse, unsigned char valeur) {
+    
 }
 
 /**
@@ -142,7 +144,7 @@ void etablitValeurPortA(unsigned char adresse, unsigned char valeur) {
 void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
-    i2cRappelCommande(etablitValeurPortA);   //créer une fonction remplaçant celle-là pour traiter (adresse I2c, valeur)
+    i2cRappelCommande(receptionSonar);   //créer une fonction remplaçant celle-là pour traiter (adresse I2c, valeur)
     pwmReinitialise();
 
     while(1);
