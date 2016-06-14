@@ -12,32 +12,25 @@
  */
 void maitreInterruptions() {
   
-    if (INTCON3bits.INT1F) {
+    if (INTCON3bits.INT1F) { // drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
-        switch ("commande_i2c"){                  // à définir
-            case "MOTEUR_DC":
-                i2cAdresse = ECRITURE_MOTEUR_DC;
-                break;
-            case "SERVO_DC":
-                i2cAdresse = ECRITURE_SERVO_DC;
-                break;
-            case "STEPPER":
-                i2cAdresse = ECRITURE_STEPPER;
-                break;
-            case "SERVO_ST":
-                i2cAdresse = ECRITURE_SERVO_ST;
-                break;
-        }
+        
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,20);
+      
         ADCON0bits.GO = 1;
     }
     
-    if (INTCON3bits.INT2F) {
+    if (INTCON3bits.INT2F) { // drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
+        
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
         
         ADCON0bits.GO = 1;
 
     if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
-        i2cPrepareCommandePourEmission(i2cAdresse, ADRESH);
+        i2cPrepareCommandePourEmission("commande RC", ADRESH);
         PIR1bits.ADIF = 0;
     }
     
