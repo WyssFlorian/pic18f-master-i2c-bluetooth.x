@@ -3,5 +3,9 @@
 
 void recepteurInterruptions();
 void recepteurMain(void);
+void recepteurInitialiseHardware();
+void recepteur_rc();
+void recepteur_bt();
+
 
 #endif
