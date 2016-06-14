@@ -3,12 +3,14 @@
 #include "recepteur_1.h"
 
  static I2cAdresse i2cAdresse;
- static int compteurCapteur = 0;
+ static int adresse;
  
 /**
  * Point d'entrée des interruptions pour le maître.
  */
 void maitreInterruptions() {
+    
+    static int compteurCapteur = 0;
   
     if (INTCON3bits.INT1F) { // drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
@@ -29,12 +31,19 @@ void maitreInterruptions() {
     }
     
     if (PIR1bits.RC1IF) {
-        i2cPrepareCommandePourEmission("commande BT", ADRESSE de sortie UART);
+        
+        RCSTA1bits.ADDEN = 0; //réception de l'adresse puis des data par 
+        adresse = RCREG1;     //l'EUSART configurée en mode détection d'adresse
+        
+        while (!PIR1bits.RC1IF){
+            RCSTA1bits.ADDEN = 1;
+            i2cPrepareCommandePourEmission(adresse, RCREG1);
+        }
         
     }
 
     if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
-        i2cPrepareCommandePourEmission("commande RC", ADRESH);
+        i2cPrepareCommandePourEmission(I2cAdresse, ADRESH);
         PIR1bits.ADIF = 0;
     }
     
@@ -64,7 +73,6 @@ void maitreInterruptions() {
     if (PIR1bits.SSP1IF) { // drapeau de fin de tache master i2c
         i2cMaitre();
         PIR1bits.SSP1IF = 0;
-    }
     }
 }
 
