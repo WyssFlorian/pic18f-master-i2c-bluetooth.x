@@ -28,6 +28,12 @@ void maitreInterruptions() {
         i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
         
         ADCON0bits.GO = 1;
+    }
+    
+    if (PIR1bits.RC1IF) {
+        i2cPrepareCommandePourEmission("commande BT", ADRESSE de sortie UART);
+        
+    }
 
     if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
         i2cPrepareCommandePourEmission("commande RC", ADRESH);
@@ -57,7 +63,7 @@ void maitreInterruptions() {
         }
      }
     
-    if (PIR1bits.SSP1IF) {
+    if (PIR1bits.SSP1IF) { // drapeau de fin de tache master i2c
         i2cMaitre();
         PIR1bits.SSP1IF = 0;
     }
