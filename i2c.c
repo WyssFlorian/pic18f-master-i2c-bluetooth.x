@@ -50,7 +50,7 @@ void i2cPrepareCommandePourEmission(I2cAdresse adresse, unsigned char valeur) {
     fileEnfile(&fileEmission, adresse);
     fileEnfile(&fileEmission, valeur);
     if (etatMaitre == I2C_MASTER_EMISSION_ADRESSE) {
-        SSP1CON2bits.SEN = 1;
+        SSP1CON2bits.SEN = 1;                          // commande start
     }
 }
 
