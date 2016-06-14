@@ -5,8 +5,6 @@
  static I2cAdresse i2cAdresse;
  static int compteurCapteur = 0;
  
- 
- 
 /**
  * Point d'entrée des interruptions pour le maître.
  */
