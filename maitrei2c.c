@@ -1,46 +1,40 @@
 #include <xc.h>
 #include "i2c.h"
-#include "HC06_ZS040.h"
+#include "recepteur_1.h"
 
  static I2cAdresse i2cAdresse;
  static int compteurCapteur = 0;
  
  
- /**
+ 
+/**
  * Point d'entrée des interruptions pour le maître.
  */
 void maitreInterruptions() {
   
-    if (INTCON3bits.INT1F) {
+    if (INTCON3bits.INT1F) { // drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
-        switch ("commande_i2c"){                  // à définir
-            case "MOTEUR_DC":
-                i2cAdresse = ECRITURE_MOTEUR_DC;
-                break;
-            case "SERVO_DC":
-                i2cAdresse = ECRITURE_SERVO_DC;
-                break;
-            case "STEPPER":
-                i2cAdresse = ECRITURE_STEPPER;
-                break;
-            case "SERVO_ST":
-                i2cAdresse = ECRITURE_SERVO_ST;
-                break;
-        }
+        
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,20);
+      
         ADCON0bits.GO = 1;
     }
     
-    if (INTCON3bits.INT2F) {
+    if (INTCON3bits.INT2F) { // drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
+        
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
         
         ADCON0bits.GO = 1;
 
-    if (PIR1bits.ADIF) {
-        i2cPrepareCommandePourEmission(i2cAdresse, ADRESH);
+    if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
+        i2cPrepareCommandePourEmission("commande RC", ADRESH);
         PIR1bits.ADIF = 0;
     }
     
-    if (PIR1bits.TMR1IF) {
+    if (PIR1bits.TMR1IF) {   //interruption 4x par sec sur timer 1
         PIR1bits.TMR1IF = 0;
         switch (compteurCapteur) {
             case 0:
@@ -88,7 +82,7 @@ static void maitreInitialiseHardware() {
     IPR1bits.TMR1IP = 0;    // ... de basse priorité.
     
     // Interruptions INT1 et INT2:
-    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...   à modifier pour intégrer module RC
+    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...         à modifier pour RC
     ANSELBbits.ANSB1 = 0;       // ... digitale.
     TRISBbits.RB2 = 1;          // Port RB2 comme entrée...
     ANSELBbits.ANSB2 = 0;       // ... digitale.
@@ -130,13 +124,13 @@ static void maitreInitialiseHardware() {
     PIE1bits.SSP1IE = 1;        // Interruption en cas de transmission I2C...
     IPR1bits.SSP1IP = 0;        // ... de basse priorité.
     
+    // Initilise l'EUSART @9600bits/s :
+    Initialisation_EUSART();
+    
     // Active les interruptions générales:
     RCONbits.IPEN = 1;
     INTCONbits.GIEH = 1;
     INTCONbits.GIEL = 1;
-    
-    // Initilise l'EUSART @9600bits/s :
-    Initialisation_EUSART();
 }
 
 void receptionSonar(unsigned char adresse, unsigned char valeur) {
@@ -150,6 +144,7 @@ void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
     i2cRappelCommande(receptionSonar);   //créer une fonction remplaçant celle-là pour traiter (adresse I2c, valeur)
+    recepteurInitialiseHardware();
 
     while(1);
 }
