@@ -47,7 +47,11 @@ void maitreInterruptions() {
         PIR1bits.ADIF = 0;
     }
     
-    if (PIR1bits.TMR1IF) {   //interruption 4x par sec sur timer 1
+    if (PIR1bits.TMR1IF) {   // Interruption 4x par sec sur timer 1
+        char compteurCapteur = 0;
+        //TMR1H = 11;
+        //TMR1L = 220;
+        TMR1 = 3036; // ce n'est pas interdit ???
         PIR1bits.TMR1IF = 0;
         switch (compteurCapteur) {
             case 0:
@@ -68,7 +72,7 @@ void maitreInterruptions() {
         if (compteurCapteur > 3){
             compteurCapteur = 0;
         }
-     }
+    }
     
     if (PIR1bits.SSP1IF) { // drapeau de fin de tache master i2c
         i2cMaitre();
@@ -80,16 +84,16 @@ void maitreInterruptions() {
  * Initialise le hardware pour le maître.
  */
 static void maitreInitialiseHardware() {
-    // Prépare PORTA pour entrée digitale:
-    TRISA = 0xF1;
-    ANSELA = 0;
+//    // Prépare PORTA pour entrée digitale:
+//    TRISA = 0xF1;
+//    ANSELA = 0;
     
     // Prépare Temporisateur 1 pour 4 interruptions par sec.
     T1CONbits.TMR1CS = 0;   // Source FOSC/4
     T1CONbits.T1CKPS = 0;   // Pas de diviseur de fréquence.
-    T1CONbits.T1RD16 = 1;   // Compteur de 16 bits.
+    T1CONbits.T1RD16 = 1;   // Comfpteur de 16 bits.
     T1CONbits.TMR1ON = 1;   // Active le temporisateur.
-    
+
     PIE1bits.TMR1IE = 1;    // Active les interruptions...
     IPR1bits.TMR1IP = 0;    // ... de basse priorité.
     
@@ -103,6 +107,7 @@ static void maitreInitialiseHardware() {
     WPUBbits.WPUB1 = 1;         // ... pour INT1 ...
     WPUBbits.WPUB2 = 1;         // ... et INT2.
     
+    // Lignes externes :
     INTCON3bits.INT1E = 1;      // INT1
     INTCON2bits.INTEDG1 = 0;    // Flanc descendant.
     INTCON3bits.INT2E = 1;      // INT2

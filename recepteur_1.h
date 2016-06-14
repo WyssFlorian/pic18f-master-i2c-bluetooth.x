@@ -1,5 +1,5 @@
-#ifndef RECEPTEUR__H
-#define RECEPTEUR__H
+#ifndef RECEPTEUR_1_H
+#define RECEPTEUR_1_H
 
 void recepteurInterruptions();
 void recepteurMain(void);
