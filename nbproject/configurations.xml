@@ -9,6 +9,7 @@
       <itemPath>i2c.h</itemPath>
       <itemPath>maitrei2c.h</itemPath>
       <itemPath>test.h</itemPath>
+      <itemPath>HC06_ZS040.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -23,6 +24,7 @@
       <itemPath>file.c</itemPath>
       <itemPath>test.c</itemPath>
       <itemPath>maitrei2c.c</itemPath>
+      <itemPath>HC06_ZS040.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

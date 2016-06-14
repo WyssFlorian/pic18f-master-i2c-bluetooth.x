@@ -1,12 +1,12 @@
 #include <xc.h>
 #include "i2c.h"
+#include "HC06_ZS040.h"
 
  static I2cAdresse i2cAdresse;
  static int compteurCapteur = 0;
  
  
- 
-/**
+ /**
  * Point d'entrée des interruptions pour le maître.
  */
 void maitreInterruptions() {
@@ -88,7 +88,7 @@ static void maitreInitialiseHardware() {
     IPR1bits.TMR1IP = 0;    // ... de basse priorité.
     
     // Interruptions INT1 et INT2:
-    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...         à modifier pour RC
+    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...   à modifier pour intégrer module RC
     ANSELBbits.ANSB1 = 0;       // ... digitale.
     TRISBbits.RB2 = 1;          // Port RB2 comme entrée...
     ANSELBbits.ANSB2 = 0;       // ... digitale.
@@ -134,6 +134,9 @@ static void maitreInitialiseHardware() {
     RCONbits.IPEN = 1;
     INTCONbits.GIEH = 1;
     INTCONbits.GIEL = 1;
+    
+    // Initilise l'EUSART @9600bits/s :
+    Initialisation_EUSART();
 }
 
 void receptionSonar(unsigned char adresse, unsigned char valeur) {
@@ -147,7 +150,6 @@ void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
     i2cRappelCommande(receptionSonar);   //créer une fonction remplaçant celle-là pour traiter (adresse I2c, valeur)
-    pwmReinitialise();
 
     while(1);
 }

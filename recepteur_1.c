@@ -1,11 +1,12 @@
 #include <xc.h>
 #include "test.h"
+#include "recepteur_1.h"
 
 
 /**
  * Initialise le hardware pour l'émetteur.
  */
-static void recepteurInitialiseHardware() {  // à compléter/contrôler
+void recepteurInitialiseHardware() {  // à compléter/contrôler
     
     //configuration de la eusart
     RCSTA1bits.SPEN = 1; //active la eusart
@@ -38,13 +39,23 @@ static void recepteurInitialiseHardware() {  // à compléter/contrôler
 }
 
 /**
- * Point d'entrée pour l'émetteur de radio contrôle.
+ * Point d'entrée pour le récepteur de radio contrôle.
  */
+void recepteur_rc() {
+    
+}
 
 /**
  * Point d'entrée des interruptions basse priorité.
  */
 void recepteurInterruptions() {
+    
+}
+
+/**
+ * Point d'entrée pour le récepteur Bluetooth.
+ */
+void recepteur_bt() {
     
 }
 

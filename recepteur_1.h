@@ -4,8 +4,9 @@
 void recepteurInterruptions();
 void recepteurMain(void);
 void recepteurInitialiseHardware();
-void recepteur_rc();
-void recepteur_bt();
+void recepteur_rc(void);
+void recepteur_bt(void);
+void pwmReinitialise(void);
 
 
 #endif
