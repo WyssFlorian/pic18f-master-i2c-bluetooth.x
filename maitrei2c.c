@@ -1,6 +1,6 @@
 #include <xc.h>
 #include "i2c.h"
-#include "recepteur_1.h"
+#include "HC06_ZS040.h"
 
  static I2cAdresse i2cAdresse;
   
