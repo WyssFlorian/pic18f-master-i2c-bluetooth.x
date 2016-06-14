@@ -1,5 +1,6 @@
 #include <xc.h>
 #include "i2c.h"
+#include "recepteur_1.h"
 
  static I2cAdresse i2cAdresse;
  static int compteurCapteur = 0;
@@ -35,12 +36,12 @@ void maitreInterruptions() {
         
         ADCON0bits.GO = 1;
 
-    if (PIR1bits.ADIF) {
+    if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
         i2cPrepareCommandePourEmission(i2cAdresse, ADRESH);
         PIR1bits.ADIF = 0;
     }
     
-    if (PIR1bits.TMR1IF) {
+    if (PIR1bits.TMR1IF) {   //interruption 4x par sec sur timer 1
         PIR1bits.TMR1IF = 0;
         switch (compteurCapteur) {
             case 0:
@@ -147,7 +148,7 @@ void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
     i2cRappelCommande(receptionSonar);   //créer une fonction remplaçant celle-là pour traiter (adresse I2c, valeur)
-    pwmReinitialise();
+    recepteurInitialiseHardware();
 
     while(1);
 }
