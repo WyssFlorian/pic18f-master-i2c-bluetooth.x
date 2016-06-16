@@ -4,6 +4,8 @@
 
  static I2cAdresse i2cAdresse;
  static int adresse;
+ static int bloque_av = 0;
+ static int bloque_ar = 0;
  
 /**
  * Point d'entrée des interruptions pour le maître.
@@ -37,7 +39,42 @@ void maitreInterruptions() {
         
         while (!PIR1bits.RC1IF){
             RCSTA1bits.ADDEN = 1;
-            i2cPrepareCommandePourEmission(adresse, RCREG1);
+            switch (adresse){
+                case ECRITURE_MOTEUR_DC:
+                    if (RCREG1 > 0 && bloque_av = 0){
+                        i2cPrepareCommandePourEmission(adresse, RCREG1);
+                        bloque_ar = 0;
+                    }else{
+                        break;
+                    }
+                    break;
+                    
+                case ECRITURE_STEPPER:
+                    if (RCREG1 > 0 && bloque_av = 0){
+                        i2cPrepareCommandePourEmission(adresse, RCREG1);
+                        bloque_ar = 0;
+                    }else{
+                        break;
+                    }
+                    break;
+                    
+                case ECRITURE_MOTEUR_DC:
+                    if (RCREG1 < 0 && bloque_ar = 0){
+                        i2cPrepareCommandePourEmission(adresse, RCREG1);
+                        bloque_av = 0;
+                    }else{
+                        break;
+                    }
+                    break;
+            }
+                case ECRITURE_STEPPER:
+                    if (RCREG1 < 0 && bloque_ar = 0){
+                        i2cPrepareCommandePourEmission(adresse, RCREG1);
+                        bloque_av = 0;
+                    }else{
+                        break;
+                    }
+                    break; 
         }
         
     }
@@ -150,8 +187,38 @@ static void maitreInitialiseHardware() {
     INTCONbits.GIEL = 1;
 }
 
-void receptionSonar(unsigned char adresse, unsigned char valeur) {
-    
+void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
+    switch (adr_i2c){
+        case LECTURE_CAPTEUR_AV:
+            if (valeur < 50){
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
+                bloque_av = 1;
+            }
+            break;
+            
+        case LECTURE_CAPTEUR_AR:
+            if (valeur < 50){
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
+                bloque_ar = 1;
+            }
+            break;
+            
+        case LECTURE_CAPTEUR_DR:
+             if (valeur < 20){
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
+            }
+            break;
+            
+        case LECTURE_CAPTEUR_GA:
+             if (valeur < 20){
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);  
+            }
+            break;
+    }           
 }
 
 /**
