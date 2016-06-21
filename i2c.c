@@ -183,9 +183,9 @@ void i2cExposeValeur(unsigned char adresse, unsigned char valeur) {
         }
     }
     PIR1bits.SSP1IF = 0;
-} /*
+}
 
-/**
+
  * Réinitialise la machine i2c.
  */
 void i2cReinitialise() {

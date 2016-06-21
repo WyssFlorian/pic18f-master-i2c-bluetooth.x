@@ -8,7 +8,6 @@
       <itemPath>file.h</itemPath>
       <itemPath>i2c.h</itemPath>
       <itemPath>maitrei2c.h</itemPath>
-      <itemPath>test.h</itemPath>
       <itemPath>HC06_ZS040.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
@@ -22,7 +21,6 @@
       <itemPath>recepteur_1.c</itemPath>
       <itemPath>i2c.c</itemPath>
       <itemPath>file.c</itemPath>
-      <itemPath>test.c</itemPath>
       <itemPath>maitrei2c.c</itemPath>
       <itemPath>HC06_ZS040.c</itemPath>
     </logicalFolder>
