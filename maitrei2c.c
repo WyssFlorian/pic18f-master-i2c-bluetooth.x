@@ -12,29 +12,34 @@
  * Point d'entrée des interruptions pour le maître.
  */
 void maitreInterruptions() {
+    static I2cAdresse i2cAdresse;
   
     if (INTCON3bits.INT1F) { // drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
-        
+        i2cAdresse = ECRITURE_MOTEUR_DC;
         i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,20);
+        i2cAdresse = ECRITURE_STEPPER;
         i2cPrepareCommandePourEmission(ECRITURE_STEPPER,20);
-      
         ADCON0bits.GO = 1;
     }
     
     if (INTCON3bits.INT2F) { // drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
-        
         i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
+        i2cAdresse = ECRITURE_MOTEUR_DC;
         i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
-        
+        i2cAdresse = ECRITURE_STEPPER;
         ADCON0bits.GO = 1;
     }
+
+    /** réception de l'adresse puis des data par l'EUSART configurée en mode
+      * détection d'adresse.
+    */
     
     if (PIR1bits.RC1IF) {
         
-        RCSTA1bits.ADDEN = 0; //réception de l'adresse puis des data par 
-        adresse = RCREG1;     //l'EUSART configurée en mode détection d'adresse
+        RCSTA1bits.ADDEN = 0; // 
+        adresse = RCREG1;     //
         
         while (!PIR1bits.RC1IF){
             RCSTA1bits.ADDEN = 1;
@@ -63,11 +68,9 @@ void maitreInterruptions() {
                     }else{
                         break;
                     }
-                    break;
-                  
+                    break; 
             }
         }
-        
     }
 
    // if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
@@ -77,10 +80,8 @@ void maitreInterruptions() {
     
     if (PIR1bits.TMR1IF) {   // Interruption 4x par sec sur timer 1
         char compteurCapteur = 0;
-        //TMR1H = 11;
-        //TMR1L = 220;
-        TMR1 = 3036; // ce n'est pas interdit ???
-        PIR1bits.TMR1IF = 0;
+        TMR1 = 3035;
+        
         switch (compteurCapteur) {
             case 0:
                 i2cPrepareCommandePourEmission(LECTURE_CAPTEUR_AV, 0);
@@ -100,6 +101,7 @@ void maitreInterruptions() {
         if (compteurCapteur > 3){
             compteurCapteur = 0;
         }
+        PIR1bits.TMR1IF = 0;
     }
     
     if (PIR1bits.SSP1IF) { // drapeau de fin de tache master i2c
@@ -218,8 +220,9 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
 void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
-    i2cRappelCommande(receptionSonar);   //créer une fonction remplaçant celle-là pour traiter (adresse I2c, valeur)
+    i2cRappelCommande(receptionSonar);
     recepteurInitialiseHardware();
+    
 
     while(1);
 }

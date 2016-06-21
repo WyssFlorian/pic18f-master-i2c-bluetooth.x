@@ -4,7 +4,7 @@
 #include "test.h"
 
 /**
- * Bits de configuration: ! à contrôler !
+ * Bits de configuration:
  */
 #pragma config FOSC = INTIO67   // Osc. interne, A6 et A7 comme IO.
 #pragma config IESO = OFF       // Pas d'osc. au démarrage.
@@ -16,10 +16,6 @@
 #pragma config LVP = OFF        // Single Supply Enable bits off.
 
 // Configuration de l'entrée RC -> PWM:
-
-// A compléter
-
-// Configuration de l'entrée bluetooth -> UART
 
 // A compléter
 
