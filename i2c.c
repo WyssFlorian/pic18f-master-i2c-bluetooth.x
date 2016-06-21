@@ -151,7 +151,7 @@ void i2cExposeValeur(unsigned char adresse, unsigned char valeur) {
  * @param valeursLecture Liste de valeurs à rendre en cas d'opération
  * de lecture.
  */
-void i2cEsclave() {
+/** void i2cEsclave() {
     static unsigned char adresse;
     
     // Machine à état extraite de Microchip AN734 - Apendix B
@@ -183,7 +183,7 @@ void i2cEsclave() {
         }
     }
     PIR1bits.SSP1IF = 0;
-}
+} /*
 
 /**
  * Réinitialise la machine i2c.

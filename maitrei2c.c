@@ -4,6 +4,7 @@
 
  static I2cAdresse i2cAdresse;
  static int adresse;
+ static int data;
  static int bloque_av = 0;
  static int bloque_ar = 0;
  
@@ -11,8 +12,6 @@
  * Point d'entrée des interruptions pour le maître.
  */
 void maitreInterruptions() {
-    
-    static int compteurCapteur = 0;
   
     if (INTCON3bits.INT1F) { // drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
@@ -39,50 +38,42 @@ void maitreInterruptions() {
         
         while (!PIR1bits.RC1IF){
             RCSTA1bits.ADDEN = 1;
+            data = RC1IF;
             switch (adresse){
                 case ECRITURE_MOTEUR_DC:
-                    if (RCREG1 > 0 && bloque_av = 0){
-                        i2cPrepareCommandePourEmission(adresse, RCREG1);
-                        bloque_ar = 0;
+                    if (data > 0 && bloque_av == 0){
+                        i2cPrepareCommandePourEmission(adresse, data);
+                        bloque_ar = 0;}
+                    else if (data < 0 && bloque_ar == 0){
+                        i2cPrepareCommandePourEmission(adresse, data);
+                        bloque_av = 0;
                     }else{
                         break;
                     }
                     break;
                     
                 case ECRITURE_STEPPER:
-                    if (RCREG1 > 0 && bloque_av = 0){
-                        i2cPrepareCommandePourEmission(adresse, RCREG1);
+                    if (data > 0 && bloque_av == 0){
+                        i2cPrepareCommandePourEmission(adresse, data);
                         bloque_ar = 0;
-                    }else{
-                        break;
                     }
-                    break;
-                    
-                case ECRITURE_MOTEUR_DC:
-                    if (RCREG1 < 0 && bloque_ar = 0){
-                        i2cPrepareCommandePourEmission(adresse, RCREG1);
+                    else if (data < 0 && bloque_ar == 0){
+                        i2cPrepareCommandePourEmission(adresse, data);
                         bloque_av = 0;
                     }else{
                         break;
                     }
                     break;
+                  
             }
-                case ECRITURE_STEPPER:
-                    if (RCREG1 < 0 && bloque_ar = 0){
-                        i2cPrepareCommandePourEmission(adresse, RCREG1);
-                        bloque_av = 0;
-                    }else{
-                        break;
-                    }
-                    break; 
         }
         
     }
 
-    if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
-        i2cPrepareCommandePourEmission(I2cAdresse, ADRESH);
-        PIR1bits.ADIF = 0;
-    }
+   // if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
+   //     i2cPrepareCommandePourEmission(I2cAdresse, ADRESH);
+   //     PIR1bits.ADIF = 0;
+   //}
     
     if (PIR1bits.TMR1IF) {   // Interruption 4x par sec sur timer 1
         char compteurCapteur = 0;

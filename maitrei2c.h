@@ -3,5 +3,6 @@
 
 void maitreInterruptions();
 void maitreMain(void);
+void receptionSonar(unsigned char adr_i2c, unsigned char valeur);
 
 #endif
