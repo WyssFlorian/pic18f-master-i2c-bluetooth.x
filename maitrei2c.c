@@ -118,7 +118,7 @@ void maitreInterruptions() {
 static void maitreInitialiseHardware() {
     
     ANSELA = 0x00; // Désactive les convertisseurs A/D.
-    ANSELB = 0x01; // Active les convertisseurs A/D.
+    ANSELB = 0x00; // Active les convertisseurs A/D.
     ANSELC = 0x00; // Désactive les convertisseurs A/D.
     
     // Prépare Temporisateur 1 pour 4 interruptions par sec.
@@ -130,7 +130,7 @@ static void maitreInitialiseHardware() {
     PIE1bits.TMR1IE = 1;    // Active les interruptions...
     IPR1bits.TMR1IP = 0;    // ... de basse priorité.
     
-    // Interruptions INT1 et INT2:
+    // Interruptions INT1 et INT2
     TRISBbits.RB1 = 1;          // Port RB1 comme entrée...
     ANSELBbits.ANSB1 = 0;       // ... digitale.
     TRISBbits.RB2 = 1;          // Port RB2 comme entrée...
@@ -140,11 +140,10 @@ static void maitreInitialiseHardware() {
     WPUBbits.WPUB1 = 1;         // ... pour INT1 ...
     WPUBbits.WPUB2 = 1;         // ... et INT2.
     
-    // Lignes externes :
     INTCON3bits.INT1E = 1;      // INT1
-    INTCON2bits.INTEDG1 = 1;    // Flanc montant.
+    INTCON2bits.INTEDG1 = 0;    // Flanc descendant.
     INTCON3bits.INT2E = 1;      // INT2
-    INTCON2bits.INTEDG2 = 1;    // Flanc montant.
+    INTCON2bits.INTEDG2 = 0; // Flanc descendant.
 
     // Active le module de conversion A/D:
     TRISBbits.RB3 = 1;      // Active RB3 comme entrée.
@@ -228,8 +227,9 @@ void maitreMain(void) {
     i2cRappelCommande(receptionSonar);
     recepteurInitialiseHardware();
     
-
-   while(1) {
+    while(1);
+    /*
+    while(1) {  // fait planter la simulation ! à corriger (accents par exemple)
         char buffer[40];
         int adresseDevice, dataValeur, angle;
 
@@ -258,4 +258,5 @@ void maitreMain(void) {
         angle = atoi(buffer);
         printf("Depacement: %d, de %d avec un angle de %d\r\n", adresseDevice, dataValeur, angle);
     }
+    */
 }
