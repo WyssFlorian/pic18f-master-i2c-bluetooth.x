@@ -225,5 +225,32 @@ void maitreMain(void) {
     recepteurInitialiseHardware();
     
 
-    while(1);
+    while(1) {
+        char buffer[40];
+        int adresseDevice, angle, dataValeur;
+
+        //initialiseHardware();
+        //uartReinitialise();
+        printf("Salut !\r\n");
+        printf("Exemple de séquence de comande :\r\n");    
+        printf("Déplacement + combien + angle\r\n")
+        printf("Quel type de déplacement ?\r\n");
+        printf("A : avancer ou R : Reculer\r\n")
+        printf("De combien ?\r\n");
+        printf("-100 à 100 : en %%\r\n")
+        printf("Quel angle ?\r\n");
+        printf("-100 à 100 : en %%\r\n")
+        printf("Quel type de déplacement ?\r\n");
+        gets(buffer);
+        printf("Vous avez dit: %s\r\n", buffer);
+        printf("De combien ?\r\n");
+        gets(buffer);
+        printf("Vous avez dit: %s\r\n", buffer);
+        adresseDevice = atoi(buffer);
+        printf("Quel angle ?\r\n");
+        gets(buffer);
+        printf("Vous avez dit: %s\r\n", buffer);
+        dataValeur = atoi(buffer);
+        printf("La somme de %d et %d est %d\r\n", nombre1, nombre2, nombre1 + nombre2);
+    }
 }
