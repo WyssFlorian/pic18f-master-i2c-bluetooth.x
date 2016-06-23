@@ -24,16 +24,14 @@ void maitreInterruptions() {
         i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,20);
         i2cAdresse = ECRITURE_STEPPER;
         i2cPrepareCommandePourEmission(ECRITURE_STEPPER,20);
-        ADCON0bits.GO = 1;
     }
     
     if (INTCON3bits.INT2F) { // drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
         i2cAdresse = ECRITURE_MOTEUR_DC;
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
         i2cAdresse = ECRITURE_STEPPER;
-        ADCON0bits.GO = 1;
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
     }
 
     /** réception de l'adresse puis des data par l'EUSART configurée en mode
@@ -108,7 +106,7 @@ void maitreInterruptions() {
         PIR1bits.TMR1IF = 0;
     }
     
-    if (PIR1bits.SSP1IF) { // drapeau de fin de tache master i2c
+    if (PIR1bits.SSP1IF) { // drapeau de fin de tâche master i2c
         i2cMaitre();
         PIR1bits.SSP1IF = 0;
     }
@@ -118,14 +116,15 @@ void maitreInterruptions() {
  * Initialise le hardware pour le maître.
  */
 static void maitreInitialiseHardware() {
-//    // Prépare PORTA pour entrée digitale:
-//    TRISA = 0xF1;
-//    ANSELA = 0;
+    
+    ANSELA = 0x00; // Désactive les convertisseurs A/D.
+    ANSELB = 0x01; // Active les convertisseurs A/D.
+    ANSELC = 0x00; // Désactive les convertisseurs A/D.
     
     // Prépare Temporisateur 1 pour 4 interruptions par sec.
     T1CONbits.TMR1CS = 0;   // Source FOSC/4
     T1CONbits.T1CKPS = 0;   // Pas de diviseur de fréquence.
-    T1CONbits.T1RD16 = 1;   // Comfpteur de 16 bits.
+    T1CONbits.T1RD16 = 1;   // Compteur de 16 bits.
     T1CONbits.TMR1ON = 1;   // Active le temporisateur.
 
     PIE1bits.TMR1IE = 1;    // Active les interruptions...
@@ -237,7 +236,7 @@ void maitreMain(void) {
         //initialiseHardware();
         //uartReinitialise();
         printf("Salut !\r\n");
-        printf("Exemple de sequence de comande :\r\n");    
+        printf("Exemple de sequence de comande :\r\n");
         printf("Deplacement + combien + angle\r\n");
         printf("Quel type de deplacement ?\r\n");
         printf("A : avancer ou R : Reculer\r\n");
