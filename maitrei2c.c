@@ -1,4 +1,6 @@
 #include <xc.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "i2c.h"
 #include "HC06_ZS040.h"
 #include "recepteur.h"
@@ -228,30 +230,31 @@ void maitreMain(void) {
 
     while(1) {
         char buffer[40];
-        int adresseDevice, angle, dataValeur;
+        int adresseDevice, dataValeur, angle;
 
         //initialiseHardware();
         //uartReinitialise();
         printf("Salut !\r\n");
-        printf("Exemple de séquence de comande :\r\n");    
-        printf("Déplacement + combien + angle\r\n")
-        printf("Quel type de déplacement ?\r\n");
-        printf("A : avancer ou R : Reculer\r\n")
+        printf("Exemple de sequence de comande :\r\n");    
+        printf("Deplacement + combien + angle\r\n");
+        printf("Quel type de deplacement ?\r\n");
+        printf("A : avancer ou R : Reculer\r\n");
         printf("De combien ?\r\n");
-        printf("-100 à 100 : en %%\r\n")
+        printf("-100 a 100 : en %%\r\n");
         printf("Quel angle ?\r\n");
-        printf("-100 à 100 : en %%\r\n")
-        printf("Quel type de déplacement ?\r\n");
-        gets(buffer);
-        printf("Vous avez dit: %s\r\n", buffer);
-        printf("De combien ?\r\n");
+        printf("-100 a 100 : en %%\r\n");
+        printf("Quel type de deplacement ?\r\n");
         gets(buffer);
         printf("Vous avez dit: %s\r\n", buffer);
         adresseDevice = atoi(buffer);
-        printf("Quel angle ?\r\n");
+        printf("De combien ?\r\n");
         gets(buffer);
         printf("Vous avez dit: %s\r\n", buffer);
         dataValeur = atoi(buffer);
-        printf("La somme de %d et %d est %d\r\n", nombre1, nombre2, nombre1 + nombre2);
+        printf("Quel angle ?\r\n");
+        gets(buffer);
+        printf("Vous avez dit: %s\r\n", buffer);
+        angle = atoi(buffer);
+        printf("Depacement: %d, de %d avec un angle de %d\r\n", adresseDevice, dataValeur, angle);
     }
 }
