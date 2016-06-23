@@ -130,7 +130,7 @@ static void maitreInitialiseHardware() {
     IPR1bits.TMR1IP = 0;    // ... de basse priorité.
     
     // Interruptions INT1 et INT2:
-    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...         à modifier pour RC
+    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...
     ANSELBbits.ANSB1 = 0;       // ... digitale.
     TRISBbits.RB2 = 1;          // Port RB2 comme entrée...
     ANSELBbits.ANSB2 = 0;       // ... digitale.
@@ -141,13 +141,15 @@ static void maitreInitialiseHardware() {
     
     // Lignes externes :
     INTCON3bits.INT1E = 1;      // INT1
-    INTCON2bits.INTEDG1 = 0;    // Flanc descendant.
+    INTCON2bits.INTEDG1 = 1;    // Flanc montant.
     INTCON3bits.INT2E = 1;      // INT2
-    INTCON2bits.INTEDG2 = 0;    // Flanc descendant.
+    INTCON2bits.INTEDG2 = 1;    // Flanc montant.
 
     // Active le module de conversion A/D:
     TRISBbits.RB3 = 1;      // Active RB3 comme entrée.
     ANSELBbits.ANSB3 = 1;   // Active AN09 comme entrée analogique.
+    TRISBbits.RB4 = 1;      // Active RB4 comme entrée.
+    ANSELBbits.ANSB4 = 1;   // Active AN11 comme entrée analogique.
     ADCON0bits.ADON = 1;    // Allume le module A/D.
     ADCON0bits.CHS = 9;     // Branche le convertisseur sur AN09
     ADCON2bits.ADFM = 0;    // Les 8 bits plus signifiants sur ADRESH.
@@ -226,7 +228,7 @@ void maitreMain(void) {
     recepteurInitialiseHardware();
     
 
-    while(1) {
+   while(1) {
         char buffer[40];
         int adresseDevice, angle, dataValeur;
 
