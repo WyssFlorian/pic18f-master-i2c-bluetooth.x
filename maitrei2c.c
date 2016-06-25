@@ -71,19 +71,22 @@ void maitreInterruptions() {
                     }else{
                         break;
                     }
-                    break; 
-            }
+                    break;
+                    
+                case ECRITURE_SERVO_DC:
+                    i2cPrepareCommandePourEmission(adresse, data);
+                    break;
+                    
+                case ECRITURE_SERVO_ST:
+                    i2cPrepareCommandePourEmission(adresse, data);
+                    break;
+                   
         }
     }
     if (PIR1bits.TX1IF) {
         uartTransmission();
     }
 
-   // if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
-   //     i2cPrepareCommandePourEmission(I2cAdresse, ADRESH);
-   //     PIR1bits.ADIF = 0;
-   //}
-    
    if (PIR1bits.TMR1IF) {   // Interruption 4x par sec sur timer 1
         PIR1bits.TMR1IF = 0;
         TMR1 = 3035;
