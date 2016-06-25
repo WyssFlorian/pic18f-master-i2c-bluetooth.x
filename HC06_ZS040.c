@@ -6,11 +6,18 @@
  * bluetooth est connecté à la sortie TX, il trasmettra le carctère.
  * @param data Le code ASCII du caractère à transmettre.
 */
-void putch(char data) {
+void putch(unsigned char data) {
     // Attend que le registre tampon d'envoi soit plein.
-    while( ! TX1IF);
+    while(! TX1IF);
     // Le caractère est écrit sur le port série (et TX1IF est remis à zéro).
     TXREG1 = data;
+}
+
+void putst(unsigned char *data) {
+    while(*data) {
+        putch(*data);   // Envoi un caractère pointé par data.
+        data++;         // Incrémente la position du pointeur pour le prochain caractère.
+    }
 }
 
 /* Fonction qui reçois un caractère depuis l'EUSART.
@@ -20,7 +27,7 @@ void putch(char data) {
 */
 unsigned char getch() { 
     // Attend que le registre tampon de réception soit vide.
-    while( ! RC1IF); 
+    while(! RC1IF); 
     // Le caractère est lu sur le port série (et RC1IF est remis à zéro).
     return RCREG1;
 } 
