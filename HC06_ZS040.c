@@ -1,5 +1,8 @@
 #include <xc.h>
 #include <stdio.h>
+#include "file.h"
+#include "HC06_ZS040.h"
+#include "uart.h"
 
 /* Fonction qui transmet un caractère à l'EUSART.
  * Cette implémentation envoie le caractère à l'EUSART. Le terminal

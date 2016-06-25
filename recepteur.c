@@ -1,6 +1,7 @@
 #include <xc.h>
 #include "test.h"
 #include "recepteur.h"
+#include "uart.h"
 
 
 /**
@@ -8,34 +9,39 @@
  */
 void recepteurInitialiseHardware() {  // à compléter/contrôler
     
-    //configuration de la eusart
-    RCSTA1bits.SPEN = 1; //active la eusart
-    TXSTA1bits.TXEN = 1; //active l'émetteur
-    TXSTA1bits.SYNC = 0; //mode asynchrone
-	
-    //avec une horloge interne à 1MHZ, cela fait 1200 bauds
-	SPBRG1 = 12;
+    // Pour une fréquence de 1MHz, ceci donne 9600 bauds :
+    TXSTA1bits.BRGH = 1;     // Mode haute vitesse.
+    BAUDCON1bits.BRG16 = 1;  // Prise en compte du registre SPBRGH.
+    SPBRG = 25;
     SPBRGH = 0;
-    
-    // Configure RC6 et RC7 commen entrée digitales pour que la EUSART 
-    // puisse les contrôler.
-	TRISCbits.RC6 = 1;
+
+    // Configure RC6 et RC7 comme entrées digitales, pour que
+    // la EUSART puisse en prendre le contrôle:
+    ANSELCbits.ANSC6 = 0;
+    ANSELCbits.ANSC7 = 0;
+    TRISCbits.RC6 = 1;
     TRISCbits.RC7 = 1;
+   
+    // Configure l'EUSART:    
+    // (BRGH et BRG16 sont à leur valeurs par défaut)
+    // (TX9 est à sa valeur par défaut)
+    TXSTAbits.SYNC = 0;     // Mode asynchrone.
+    TXSTAbits.TXEN = 1;     // Active l'émetteur.
+    RCSTAbits.CREN = 1;     // Active le récepteur.
+    RCSTAbits.SPEN = 1;     // Active l'EUSART.
+    
+    // Active les interruptions (basse priorité):
+    PIE1bits.TX1IE = 1;
+    IPR1bits.TX1IP = 0;
+    PIE1bits.RC1IE = 1;
+    IPR1bits.RC1IP = 0;
+    
+    uartReinitialise();
 }
-/**   // Prépare le temporisateur 1
-*    T1CONbits.TMR1CS = 0;       // Source est FOSC/4
-*    T1CONbits.T1CKPS = 2;       // Diviseur de fréquence 1:4, égale à TMR2.
-*    T1CONbits.T1RD16 = 1;       // Temporisateur de 16 bits.
-*    T1CONbits.TMR1ON = 1;       // Active le temporisateur.
-*    
-*    // Configure PWM 1 pour réceptionner le signal de radio-contrôle:
+/**  // Configure PWM 1 pour réceptionner le signal de radio-contrôle:
 *    ANSELCbits.ANSC2 = 0;
 *    TRISCbits.RC2 = 0;
 *
-*    // Active les interruptions générales:
-*    RCONbits.IPEN = 1;
-*    INTCONbits.GIEH = 1;
-*    INTCONbits.GIEL = 1;
 }*/
 
 /**
