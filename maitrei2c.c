@@ -176,7 +176,7 @@ static void maitreInitialiseHardware() {
     SSP1CON3bits.PCIE = 1;      // Active l'interruption en cas STOP.
     SSP1CON3bits.SCIE = 1;      // Active l'interruption en cas de START.
     SSP1CON1bits.SSPM = 0b1000; // SSP1 en mode maître I2C.
-    SSP1ADD = 3;                // FSCL = FOSC / (4 * (SSP1ADD + 1)) = 62500 Hz.
+    SSP1ADD = 31;                // FSCL = FOSC / (4 * (SSP1ADD + 1)) = 62500 Hz.
 
     PIE1bits.SSP1IE = 1;        // Interruption en cas de transmission I2C...
     IPR1bits.SSP1IP = 0;        // ... de basse priorité.
