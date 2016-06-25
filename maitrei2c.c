@@ -24,16 +24,14 @@ void maitreInterruptions() {
         i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,20);
         i2cAdresse = ECRITURE_STEPPER;
         i2cPrepareCommandePourEmission(ECRITURE_STEPPER,20);
-        ADCON0bits.GO = 1;
     }
     
     if (INTCON3bits.INT2F) { // drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
         i2cAdresse = ECRITURE_MOTEUR_DC;
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
         i2cAdresse = ECRITURE_STEPPER;
-        ADCON0bits.GO = 1;
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
     }
 
     /** réception de l'adresse puis des data par l'EUSART configurée en mode
@@ -108,7 +106,7 @@ void maitreInterruptions() {
         PIR1bits.TMR1IF = 0;
     }
     
-    if (PIR1bits.SSP1IF) { // drapeau de fin de tache master i2c
+    if (PIR1bits.SSP1IF) { // drapeau de fin de tâche master i2c
         i2cMaitre();
         PIR1bits.SSP1IF = 0;
     }
@@ -118,21 +116,22 @@ void maitreInterruptions() {
  * Initialise le hardware pour le maître.
  */
 static void maitreInitialiseHardware() {
-//    // Prépare PORTA pour entrée digitale:
-//    TRISA = 0xF1;
-//    ANSELA = 0;
+    
+    ANSELA = 0x00; // Désactive les convertisseurs A/D.
+    ANSELB = 0x00; // Active les convertisseurs A/D.
+    ANSELC = 0x00; // Désactive les convertisseurs A/D.
     
     // Prépare Temporisateur 1 pour 4 interruptions par sec.
     T1CONbits.TMR1CS = 0;   // Source FOSC/4
     T1CONbits.T1CKPS = 0;   // Pas de diviseur de fréquence.
-    T1CONbits.T1RD16 = 1;   // Comfpteur de 16 bits.
+    T1CONbits.T1RD16 = 1;   // Compteur de 16 bits.
     T1CONbits.TMR1ON = 1;   // Active le temporisateur.
 
     PIE1bits.TMR1IE = 1;    // Active les interruptions...
     IPR1bits.TMR1IP = 0;    // ... de basse priorité.
     
-    // Interruptions INT1 et INT2:
-    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...         à modifier pour RC
+    // Interruptions INT1 et INT2
+    TRISBbits.RB1 = 1;          // Port RB1 comme entrée...
     ANSELBbits.ANSB1 = 0;       // ... digitale.
     TRISBbits.RB2 = 1;          // Port RB2 comme entrée...
     ANSELBbits.ANSB2 = 0;       // ... digitale.
@@ -141,15 +140,16 @@ static void maitreInitialiseHardware() {
     WPUBbits.WPUB1 = 1;         // ... pour INT1 ...
     WPUBbits.WPUB2 = 1;         // ... et INT2.
     
-    // Lignes externes :
     INTCON3bits.INT1E = 1;      // INT1
     INTCON2bits.INTEDG1 = 0;    // Flanc descendant.
     INTCON3bits.INT2E = 1;      // INT2
-    INTCON2bits.INTEDG2 = 0;    // Flanc descendant.
+    INTCON2bits.INTEDG2 = 0; // Flanc descendant.
 
     // Active le module de conversion A/D:
     TRISBbits.RB3 = 1;      // Active RB3 comme entrée.
     ANSELBbits.ANSB3 = 1;   // Active AN09 comme entrée analogique.
+    TRISBbits.RB4 = 1;      // Active RB4 comme entrée.
+    ANSELBbits.ANSB4 = 1;   // Active AN11 comme entrée analogique.
     ADCON0bits.ADON = 1;    // Allume le module A/D.
     ADCON0bits.CHS = 9;     // Branche le convertisseur sur AN09
     ADCON2bits.ADFM = 0;    // Les 8 bits plus signifiants sur ADRESH.
@@ -227,15 +227,16 @@ void maitreMain(void) {
     i2cRappelCommande(receptionSonar);
     recepteurInitialiseHardware();
     
-
-    while(1) {
+    while(1);
+    /*
+    while(1) {  // fait planter la simulation ! à corriger (accents par exemple)
         char buffer[40];
         int adresseDevice, dataValeur, angle;
 
         //initialiseHardware();
         //uartReinitialise();
         printf("Salut !\r\n");
-        printf("Exemple de sequence de comande :\r\n");    
+        printf("Exemple de sequence de comande :\r\n");
         printf("Deplacement + combien + angle\r\n");
         printf("Quel type de deplacement ?\r\n");
         printf("A : avancer ou R : Reculer\r\n");
@@ -257,4 +258,5 @@ void maitreMain(void) {
         angle = atoi(buffer);
         printf("Depacement: %d, de %d avec un angle de %d\r\n", adresseDevice, dataValeur, angle);
     }
+    */
 }
