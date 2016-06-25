@@ -33,6 +33,7 @@ void low_priority interrupt interruptionsBassePriorite() {
 
 /**
  * Point d'entrée.
+ * 
  * Lancement du programme en récepteur.
  */
 void main(void) {
