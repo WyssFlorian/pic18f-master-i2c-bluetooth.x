@@ -7,12 +7,12 @@
 /**
  * Initialise le hardware pour l'émetteur.
  */
-void recepteurInitialiseHardware() {  // à compléter/contrôler
+void recepteurInitialiseHardware() {
     
-    // Pour une fréquence de 1MHz, ceci donne 9600 bauds :
-    TXSTA1bits.BRGH = 1;     // Mode haute vitesse.
-    BAUDCON1bits.BRG16 = 1;  // Prise en compte du registre SPBRGH.
-    SPBRG = 25;
+    // Pour une fréquence de 8MHz, ceci donne 9600 bauds :
+    TXSTA1bits.BRGH = 1;    // Mode haute vitesse.
+    BAUDCON1bits.BRG16 = 1; // Prise en compte du registre SPBRGH.
+    SPBRG = 207;            //Baudrate = FOSC / (4 * (N + 1)) = 9615Bauds.
     SPBRGH = 0;
 
     // Configure RC6 et RC7 comme entrées digitales, pour que
