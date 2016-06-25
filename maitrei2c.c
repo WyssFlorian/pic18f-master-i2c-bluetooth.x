@@ -124,17 +124,17 @@ void maitreInterruptions() {
 static void maitreInitialiseHardware() {
     
     // Horloge principale Fosc = 1MHz
-    //OSCCONbits.IRCF = 0b011; (déjà par défaut))
+    OSCCONbits.IRCF = 0b110;    // Mis @8MHz car problème avec en uart @1MHz
     
-    ANSELA = 0x00; // Désactive les convertisseurs A/D.
-    ANSELB = 0x00; // Active les convertisseurs A/D.
-    ANSELC = 0x00; // Désactive les convertisseurs A/D.
+    ANSELA = 0x00;              // Désactive les convertisseurs A/D.
+    ANSELB = 0x00;              // Active les convertisseurs A/D.
+    ANSELC = 0x00;              // Désactive les convertisseurs A/D.
     
     // Prépare Temporisateur 1 pour 4 interruptions par sec.
     T1CONbits.TMR1CS = 0;       // Source FOSC/4
     T1CONbits.T1CKPS = 0;       // Pas de diviseur de fréquence.
     T1CONbits.T1RD16 = 1;       // Compteur de 16 bits.
-    //T1CONbits.TMR1ON = 1;   // Active le temporisateur.
+    //T1CONbits.TMR1ON = 1;     // Active le temporisateur.
 
     PIE1bits.TMR1IE = 1;        // Active les interruptions...
     IPR1bits.TMR1IP = 0;        // ... de basse priorité.
@@ -179,7 +179,7 @@ static void maitreInitialiseHardware() {
     SSP1CON3bits.PCIE = 1;      // Active l'interruption en cas STOP.
     SSP1CON3bits.SCIE = 1;      // Active l'interruption en cas de START.
     SSP1CON1bits.SSPM = 0b1000; // SSP1 en mode maître I2C.
-    SSP1ADD = 3;                // FSCL = FOSC / (4 * (SSP1ADD + 1)) = 62500 Hz.
+    SSP1ADD = 31;                // FSCL = FOSC / (4 * (SSP1ADD + 1)) = 62500 Hz.
 
     PIE1bits.SSP1IE = 1;        // Interruption en cas de transmission I2C...
     IPR1bits.SSP1IP = 0;        // ... de basse priorité.
