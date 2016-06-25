@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "i2c.h"
 #include "HC06_ZS040.h"
+#include "uart.h"
 #include "recepteur.h"
 
  static I2cAdresse i2cAdresse;
@@ -39,10 +40,10 @@ void maitreInterruptions() {
     */
     
     if (PIR1bits.RC1IF) {
-        
+        uartReception();
         RCSTA1bits.ADDEN = 0; // 
         adresse = RCREG1;     //
-        
+
         while (!PIR1bits.RC1IF){
             RCSTA1bits.ADDEN = 1;
             data = RC1IF;
@@ -74,6 +75,9 @@ void maitreInterruptions() {
             }
         }
     }
+    if (PIR1bits.TX1IF) {
+        uartTransmission();
+    }
 
    // if (PIR1bits.ADIF) {     // drapeau de fin de conversion A/D
    //     i2cPrepareCommandePourEmission(I2cAdresse, ADRESH);
@@ -81,7 +85,7 @@ void maitreInterruptions() {
    //}
     
    if (PIR1bits.TMR1IF) {   // Interruption 4x par sec sur timer 1
-        
+        PIR1bits.TMR1IF = 0;
         TMR1 = 3035;
         
         switch (compteurCapteur) {
@@ -103,7 +107,6 @@ void maitreInterruptions() {
         if (compteurCapteur > 3){
             compteurCapteur = 0;
         }
-        PIR1bits.TMR1IF = 0;
     }
     
     if (PIR1bits.SSP1IF) { // drapeau de fin de tâche master i2c
@@ -117,18 +120,21 @@ void maitreInterruptions() {
  */
 static void maitreInitialiseHardware() {
     
+    // Horloge principale Fosc = 1MHz
+    //OSCCONbits.IRCF = 0b011; (déjà par défaut))
+    
     ANSELA = 0x00; // Désactive les convertisseurs A/D.
     ANSELB = 0x00; // Active les convertisseurs A/D.
     ANSELC = 0x00; // Désactive les convertisseurs A/D.
     
     // Prépare Temporisateur 1 pour 4 interruptions par sec.
-    T1CONbits.TMR1CS = 0;   // Source FOSC/4
-    T1CONbits.T1CKPS = 0;   // Pas de diviseur de fréquence.
-    T1CONbits.T1RD16 = 1;   // Compteur de 16 bits.
-    T1CONbits.TMR1ON = 1;   // Active le temporisateur.
+    T1CONbits.TMR1CS = 0;       // Source FOSC/4
+    T1CONbits.T1CKPS = 0;       // Pas de diviseur de fréquence.
+    T1CONbits.T1RD16 = 1;       // Compteur de 16 bits.
+    //T1CONbits.TMR1ON = 1;   // Active le temporisateur.
 
-    PIE1bits.TMR1IE = 1;    // Active les interruptions...
-    IPR1bits.TMR1IP = 0;    // ... de basse priorité.
+    PIE1bits.TMR1IE = 1;        // Active les interruptions...
+    IPR1bits.TMR1IP = 0;        // ... de basse priorité.
     
     // Interruptions INT1 et INT2
     TRISBbits.RB1 = 1;          // Port RB1 comme entrée...
@@ -143,27 +149,27 @@ static void maitreInitialiseHardware() {
     INTCON3bits.INT1E = 1;      // INT1
     INTCON2bits.INTEDG1 = 0;    // Flanc descendant.
     INTCON3bits.INT2E = 1;      // INT2
-    INTCON2bits.INTEDG2 = 0; // Flanc descendant.
+    INTCON2bits.INTEDG2 = 0;    // Flanc descendant.
 
     // Active le module de conversion A/D:
-    TRISBbits.RB3 = 1;      // Active RB3 comme entrée.
-    ANSELBbits.ANSB3 = 1;   // Active AN09 comme entrée analogique.
-    TRISBbits.RB4 = 1;      // Active RB4 comme entrée.
-    ANSELBbits.ANSB4 = 1;   // Active AN11 comme entrée analogique.
-    ADCON0bits.ADON = 1;    // Allume le module A/D.
-    ADCON0bits.CHS = 9;     // Branche le convertisseur sur AN09
-    ADCON2bits.ADFM = 0;    // Les 8 bits plus signifiants sur ADRESH.
-    ADCON2bits.ACQT = 3;    // Temps d'acquisition à 6 TAD.
-    ADCON2bits.ADCS = 0;    // À 1MHz, le TAD est à 2us.
+    TRISBbits.RB3 = 1;          // Active RB3 comme entrée.
+    ANSELBbits.ANSB3 = 1;       // Active AN09 comme entrée analogique.
+    TRISBbits.RB4 = 1;          // Active RB4 comme entrée.
+    ANSELBbits.ANSB4 = 1;       // Active AN11 comme entrée analogique.
+    ADCON0bits.ADON = 1;        // Allume le module A/D.
+    ADCON0bits.CHS = 9;         // Branche le convertisseur sur AN09
+    ADCON2bits.ADFM = 0;        // Les 8 bits plus signifiants sur ADRESH.
+    ADCON2bits.ACQT = 3;        // Temps d'acquisition à 6 TAD.
+    ADCON2bits.ADCS = 0;        // À 1MHz, le TAD est à 2us.
 
-    PIE1bits.ADIE = 1;      // Active les interruptions A/D
-    IPR1bits.ADIP = 0;      // Interruptions A/D sont de basse priorité.
+    PIE1bits.ADIE = 1;          // Active les interruptions A/D
+    IPR1bits.ADIP = 0;          // Interruptions A/D sont de basse priorité.
 
     // Active le MSSP1 en mode Maître I2C:           à contrôler !!!
-    TRISCbits.RC3 = 1;      // RC3 comme entrée...              
-    ANSELCbits.ANSC3 = 0;   // ... digitale.
-    TRISCbits.RC4 = 1;      // RC4 comme entrée...
-    ANSELCbits.ANSC4 = 0;   // ... digitale.
+    TRISCbits.RC3 = 1;          // RC3 comme entrée...              
+    ANSELCbits.ANSC3 = 0;       // ... digitale.
+    TRISCbits.RC4 = 1;          // RC4 comme entrée...
+    ANSELCbits.ANSC4 = 0;       // ... digitale.
 
     SSP1CON1bits.SSPEN = 1;     // Active le module SSP.
     
@@ -175,10 +181,9 @@ static void maitreInitialiseHardware() {
     PIE1bits.SSP1IE = 1;        // Interruption en cas de transmission I2C...
     IPR1bits.SSP1IP = 0;        // ... de basse priorité.
     
-    // Initilise l'EUSART @9600bits/s :
-    Initialisation_EUSART();
-    
-    // Active les interruptions générales:
+
+    /* Active les interruptions générales:
+     */ 
     RCONbits.IPEN = 1;
     INTCONbits.GIEH = 1;
     INTCONbits.GIEL = 1;
@@ -191,6 +196,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
                 bloque_av = 1;
+                printf("Un obstacle est à %d cm à l'avant", valeur);
             }
             break;
             
@@ -199,6 +205,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
                 bloque_ar = 1;
+                printf("Un obstacle est à %d cm à l'arriere", valeur);
             }
             break;
             
@@ -206,13 +213,15 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
              if (valeur < 20){
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
+                printf("Un obstacle est à %d cm sur la droite", valeur);
             }
             break;
             
         case LECTURE_CAPTEUR_GA:
              if (valeur < 20){
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
-                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);  
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
+                printf("Un obstacle est à %d cm sur la gauche", valeur);
             }
             break;
     }           
@@ -227,14 +236,13 @@ void maitreMain(void) {
     i2cRappelCommande(receptionSonar);
     recepteurInitialiseHardware();
     
-    while(1);
-    /*
+    //while(1);
+    //*
     while(1) {  // fait planter la simulation ! à corriger (accents par exemple)
         char buffer[40];
         int adresseDevice, dataValeur, angle;
 
         //initialiseHardware();
-        //uartReinitialise();
         printf("Salut !\r\n");
         printf("Exemple de sequence de comande :\r\n");
         printf("Deplacement + combien + angle\r\n");
@@ -258,5 +266,5 @@ void maitreMain(void) {
         angle = atoi(buffer);
         printf("Depacement: %d, de %d avec un angle de %d\r\n", adresseDevice, dataValeur, angle);
     }
-    */
+    //*/
 }
