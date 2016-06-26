@@ -31,18 +31,16 @@ void maitreInterruptions() {
   
     if (INTCON3bits.INT1F) { // Drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
-        i2cAdresse = ECRITURE_MOTEUR_DC;
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0b10100);
-        i2cAdresse = ECRITURE_STEPPER;
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0b10100);
+        
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,20);
     }
     
     if (INTCON3bits.INT2F) { // Drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
-        i2cAdresse = ECRITURE_MOTEUR_DC;
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-0b10100);
-        i2cAdresse = ECRITURE_STEPPER;
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-0b10100);
+        
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
     }
 
     /** rDeclenchement des iterrptions pour l'EUSART
@@ -116,8 +114,8 @@ static void maitreInitialiseHardware() {
     T1CONbits.T1RD16 = 1;       // Compteur de 16 bits.
     T1CONbits.TMR1ON = 1;       // Active le temporisateur.
 
-    //PIE1bits.TMR1IE = 1;        // Active les interruptions...
-    //IPR1bits.TMR1IP = 0;        // ... de basse priorité.
+    PIE1bits.TMR1IE = 1;        // Active les interruptions...
+    IPR1bits.TMR1IP = 0;        // ... de basse priorité.
     
     // Interruptions INT1 et INT2 :
     TRISBbits.RB1 = 1;          // Port RB1 comme entrée...
@@ -129,12 +127,13 @@ static void maitreInitialiseHardware() {
     WPUBbits.WPUB1 = 1;         // ... pour INT1 ...
     WPUBbits.WPUB2 = 1;         // ... et INT2.
     
-    //INTCON3bits.INT1E = 1;      // Active les interruptions pour INT1...
+    INTCON3bits.INT1E = 1;      // Active les interruptions pour INT1...
     INTCON2bits.INTEDG1 = 0;    // Flanc descendant.
-    //INTCON3bits.INT2E = 1;      // Active les interruptions pour INT2...
+    INTCON3bits.INT2E = 1;      // Active les interruptions pour INT2...
     INTCON2bits.INTEDG2 = 0;    // Flanc descendant.
 
     // Active le module de conversion A/D :
+    /**
     TRISBbits.RB3 = 1;          // Active RB3 comme entrée.
     ANSELBbits.ANSB3 = 1;       // Active AN09 comme entrée analogique.
     TRISBbits.RB4 = 1;          // Active RB4 comme entrée.
@@ -145,9 +144,26 @@ static void maitreInitialiseHardware() {
     ADCON2bits.ACQT = 3;        // Temps d'acquisition à 6 TAD.
     ADCON2bits.ADCS = 0b101;    // Fosc/16 : À 8MHz, le TAD est à 2us.
 
-    //PIE1bits.ADIE = 1;          // Active les interruptions A/D
-    //IPR1bits.ADIP = 0;          // Interruptions A/D sont de basse priorité.
+    PIE1bits.ADIE = 1;          // Active les interruptions A/D
+    IPR1bits.ADIP = 0;          // Interruptions A/D sont de basse priorité.
+     */
 
+    // Active le module de capture PWM sur RB3 et RB4 :
+    
+    TRISBbits.RB3 = 1;          // Active RB3 comme entrée.
+    ANSELBbits.ANSB3 = 0;       // Active AN09 comme entrée digitale.
+    TRISBbits.RB4 = 1;          // Active RB4 comme entrée.
+    ANSELBbits.ANSB4 = 0;       // Active AN11 comme entrée digitale.
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     // Active le MSSP1 en mode Maître I2C :
     TRISCbits.RC3 = 1;          // RC3 comme entrée...              
     ANSELCbits.ANSC3 = 0;       // ... digitale.
@@ -156,13 +172,13 @@ static void maitreInitialiseHardware() {
 
     SSP1CON1bits.SSPEN = 1;     // Active le module SSP.
     
-    //SSP1CON3bits.PCIE = 1;      // Active l'interruption en cas STOP.
-    //SSP1CON3bits.SCIE = 1;      // Active l'interruption en cas de START.
+    SSP1CON3bits.PCIE = 1;      // Active l'interruption en cas STOP.
+    SSP1CON3bits.SCIE = 1;      // Active l'interruption en cas de START.
     SSP1CON1bits.SSPM = 0b1000; // SSP1 en mode maître I2C.
     SSP1ADD = 31;                // FSCL = FOSC / (4 * (SSP1ADD + 1)) = 62500 Hz.
 
-    //PIE1bits.SSP1IE = 1;        // Interruption en cas de transmission I2C...
-    //IPR1bits.SSP1IP = 0;        // ... de basse priorité.
+    PIE1bits.SSP1IE = 1;        // Interruption en cas de transmission I2C...
+    IPR1bits.SSP1IP = 0;        // ... de basse priorité.
     
 
     //Active les interruptions générales : 
@@ -184,7 +200,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
             
         case LECTURE_CAPTEUR_AR:
             if (valeur < 50){
-                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0);
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
                 bloque_ar = 1;
                 printf("Un obstacle est derriere a %d [cm].", valeur);
@@ -193,7 +209,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
             
         case LECTURE_CAPTEUR_DR:
              if (valeur < 20){
-                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0);
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
                 printf("Un obstacle est a %d [cm] sur la droite", valeur);
             }
@@ -215,13 +231,15 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
 void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
-    i2cRappelCommande(receptionSonar);
     recepteurInitialiseHardware();
     
     char buffer[40];
     int dataValeur, angle;
     
     while(1) {
+        
+        i2cRappelCommande(receptionSonar);
+        
         // Commande via Bluetooth (hyperterminal)
         if (commandeEtat == COMMANDE_BLUETOOTH) {
             printf("MENU UTILISATEUR\r\n");
@@ -249,7 +267,7 @@ void maitreMain(void) {
             // Commande pour servo stepper :
             i2cPrepareCommandePourEmission(ECRITURE_SERVO_ST,(char)angle);
 
-            if ((data > 0) && (bloque_av == 0)) {
+            if ((dataValeur > 0) && (bloque_av == 0)) {
                 // Commande pour DC :
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,(char)dataValeur);
                 // Commande pour stepper :
@@ -257,7 +275,7 @@ void maitreMain(void) {
                 // Plus de d'obstacle à l'avant
                 bloque_ar = 0;
             }
-            else if ((data > 0) && (bloque_av == 0)) {
+            else if ((dataValeur < 0) && (bloque_ar == 0)) {
                 // Commande pour DC :
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,(char)dataValeur);
                 // Commande pour stepper :
@@ -268,14 +286,14 @@ void maitreMain(void) {
         }
         else {  // Commande via telecommande RC
             printf("A present la la commande se fait via la telecommande RC.\r\n");
-            printf("Pressez un touche du clavier pour pour reprendre le controle via l'hyper terminal\r\n");
+            printf("Pressez un touche du clavier pour reprendre le controle via l'hyper terminal\r\n");
             
             /*
              Je pense qu'il aura différents switch avec valeur issues des PWMs,
              avec ta gestion des colisions.
-             * - Servo 
+             * - Servo
              * - Valeur_deplacement
-             */
+            */ 
         }
     }
 }
