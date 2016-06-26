@@ -32,15 +32,15 @@ void maitreInterruptions() {
     if (INTCON3bits.INT1F) { // Drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
         
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0b20);
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0b20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0b10100);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0b10100);
     }
     
     if (INTCON3bits.INT2F) { // Drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
         
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-0b20);
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-0b20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-0b10100);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-0b10100);
     }
 
     /** rDeclenchement des iterrptions pour l'EUSART
@@ -147,22 +147,6 @@ static void maitreInitialiseHardware() {
     PIE1bits.ADIE = 1;          // Active les interruptions A/D
     IPR1bits.ADIP = 0;          // Interruptions A/D sont de basse priorité.
      */
-
-    // Active le module de capture PWM sur RB3 et RB4 :
-    
-    TRISBbits.RB3 = 1;          // Active RB3 comme entrée.
-    ANSELBbits.ANSB3 = 0;       // Active AN09 comme entrée digitale.
-    TRISBbits.RB4 = 1;          // Active RB4 comme entrée.
-    ANSELBbits.ANSB4 = 0;       // Active AN11 comme entrée digitale.
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     // Active le MSSP1 en mode Maître I2C :
     TRISCbits.RC3 = 1;          // RC3 comme entrée...              
@@ -231,7 +215,6 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
 void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
-    recepteurInitialiseHardware();
     
     char buffer[40];
     int dataValeur, angle;

@@ -37,12 +37,19 @@ void recepteurInitialiseHardware() {
     IPR1bits.RC1IP = 0;
     
     uartReinitialise();
+    
+    // Configuration du récepteur RC
+    // Active le module de capture PWM sur RB3 et RB4 :
+    
+    TRISBbits.RB3 = 1;          // Active RB3 comme entrée.
+    ANSELBbits.ANSB3 = 0;       // Active AN09 comme entrée digitale.
+    TRISBbits.RB4 = 1;          // Active RB4 comme entrée.
+    ANSELBbits.ANSB4 = 0;       // Active AN11 comme entrée digitale.
+    
+    // Configure PWM 1 pour réceptionner le signal de radio-contrôle:
+    
+    
 }
-/**  // Configure PWM 1 pour réceptionner le signal de radio-contrôle:
-*    ANSELCbits.ANSC2 = 0;
-*    TRISCbits.RC2 = 0;
-*
-}*/
 
 /**
  * Point d'entrée pour le récepteur de radio contrôle.
@@ -51,23 +58,12 @@ void recepteurInitialiseHardware() {
     
 } */
 
-/**
- * Point d'entrée des interruptions basse priorité.
- 
- *void recepteurInterruptions() {
-    
- *}
 
-
- * Point d'entrée pour le récepteur Bluetooth.
- 
- *void recepteur_bt() {
-    
-}*/
 
 void recepteurMain(void) {
     recepteurInitialiseHardware();
     pwmReinitialise();
+    //recepteur_rc();
 
     while(1);
 }

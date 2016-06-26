@@ -15,12 +15,6 @@
 #pragma config WDTEN = OFF      // Watchdog inactif.
 #pragma config LVP = OFF        // Single Supply Enable bits off.
 
-// Configuration de l'entrée RC -> PWM:
-
-// A compléter
-
-// Configuration 
-
 #ifndef TEST
 
 /**
@@ -39,7 +33,7 @@ void low_priority interrupt interruptionsBassePriorite() {
 void main(void) {
   
     maitreMain();
-    
+    recepteurInitialiseHardware();
     
     while(1);
 }
