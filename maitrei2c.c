@@ -32,15 +32,15 @@ void maitreInterruptions() {
     if (INTCON3bits.INT1F) { // Drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
         
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,20);
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0b20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0b20);
     }
     
     if (INTCON3bits.INT2F) { // Drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
         
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-0b20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-0b20);
     }
 
     /** rDeclenchement des iterrptions pour l'EUSART
@@ -117,7 +117,7 @@ static void maitreInitialiseHardware() {
     PIE1bits.TMR1IE = 1;        // Active les interruptions...
     IPR1bits.TMR1IP = 0;        // ... de basse priorité.
     
-    // Interruptions INT1 et INT2 :
+    // Interruptions INT1 et INT2:
     TRISBbits.RB1 = 1;          // Port RB1 comme entrée...
     ANSELBbits.ANSB1 = 0;       // ... digitale.
     TRISBbits.RB2 = 1;          // Port RB2 comme entrée...
@@ -127,9 +127,9 @@ static void maitreInitialiseHardware() {
     WPUBbits.WPUB1 = 1;         // ... pour INT1 ...
     WPUBbits.WPUB2 = 1;         // ... et INT2.
     
-    INTCON3bits.INT1E = 1;      // Active les interruptions pour INT1...
+    INTCON3bits.INT1E = 1;      // INT1
     INTCON2bits.INTEDG1 = 0;    // Flanc descendant.
-    INTCON3bits.INT2E = 1;      // Active les interruptions pour INT2...
+    INTCON3bits.INT2E = 1;      // INT2
     INTCON2bits.INTEDG2 = 0;    // Flanc descendant.
 
     // Active le module de conversion A/D :
@@ -175,7 +175,7 @@ static void maitreInitialiseHardware() {
     SSP1CON3bits.PCIE = 1;      // Active l'interruption en cas STOP.
     SSP1CON3bits.SCIE = 1;      // Active l'interruption en cas de START.
     SSP1CON1bits.SSPM = 0b1000; // SSP1 en mode maître I2C.
-    SSP1ADD = 31;                // FSCL = FOSC / (4 * (SSP1ADD + 1)) = 62500 Hz.
+    SSP1ADD = 62;                // FSCL = FOSC / (4 * (SSP1ADD + 1)) = 62500 Hz.
 
     PIE1bits.SSP1IE = 1;        // Interruption en cas de transmission I2C...
     IPR1bits.SSP1IP = 0;        // ... de basse priorité.
