@@ -49,7 +49,7 @@
         <targetDevice>PIC18F25K22</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>PICkit3PlatformTool</platformTool>
+        <platformTool>Simulator</platformTool>
         <languageToolchain>XC8</languageToolchain>
         <languageToolchainVersion>1.36</languageToolchainVersion>
         <platform>3</platform>
@@ -412,7 +412,7 @@
       </Simulator>
       <XC8-config-global>
         <property key="advanced-elf" value="true"/>
-        <property key="output-file-format" value="-mcof,+elf"/>
+        <property key="output-file-format" value="+mcof,-elf"/>
         <property key="stack-size-high" value="auto"/>
         <property key="stack-size-low" value="auto"/>
         <property key="stack-size-main" value="auto"/>
