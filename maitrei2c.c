@@ -70,13 +70,22 @@ void maitreInterruptions() {
                     }else{
                         break;
                     }
-                    break; 
+                    break;
+                    
+                case ECRITURE_SERVO_DC:
+                    i2cPrepareCommandePourEmission(adresse, data);
+                    break;
+                    
+                case ECRITURE_SERVO_ST:
+                    i2cPrepareCommandePourEmission(adresse, data);
+                    break;
+                   
             }
         }*/
     }
     
     //  Pas besoin d'envoyer des byte de PIC à HC-06
-     if (PIR1bits.TX1IF) {
+    if (PIR1bits.TX1IF) {
         uartTransmission();
     }
 

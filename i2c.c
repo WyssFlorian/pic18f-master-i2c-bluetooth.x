@@ -46,7 +46,7 @@ static EtatMaitreI2C etatMaitre = I2C_MASTER_EMISSION_ADRESSE;
  * @param valeur Valeur associée. Dans une opération de lecture, cette
  * valeur n'a pas d'effet.
  */
-void i2cPrepareCommandePourEmission(I2cAdresse adresse, unsigned char valeur) {
+void i2cPrepareCommandePourEmission(I2cAdresse adresse, char valeur) {
     fileEnfile(&fileEmission, adresse);
     fileEnfile(&fileEmission, valeur);
     if (etatMaitre == I2C_MASTER_EMISSION_ADRESSE) {
@@ -142,7 +142,7 @@ unsigned char i2cValeursExposees[I2C_NOMBRE_ADRESSES_PAR_ESCLAVE];
  * demandée par le maître).
  * @param valeur La valeur.
  */
-void i2cExposeValeur(unsigned char adresse, unsigned char valeur) {
+void i2cExposeValeur(unsigned char adresse, char valeur) {
     i2cValeursExposees[adresse] = valeur;
 }
 
