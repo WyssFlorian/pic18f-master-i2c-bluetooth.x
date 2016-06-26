@@ -12,79 +12,46 @@
  static int bloque_ar = 0;
  static int compteurCapteur = 0;
  
+ // Etat commande : Bluetooth ou RC
+ typedef enum {
+    COMMANDE_BLUETOOTH,
+    COMMANDE_RC
+} ComandeStatus;
+ 
+ /**
+ * État actuel de la commande.
+ */
+ ComandeStatus commandeEtat = COMMANDE_BLUETOOTH;
+ 
 /**
  * Point d'entrée des interruptions pour le maître.
  */
 void maitreInterruptions() {
     static I2cAdresse i2cAdresse;
   
-    if (INTCON3bits.INT1F) { // drapeau d'interruption externe INT1
+    if (INTCON3bits.INT1F) { // Drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
         i2cAdresse = ECRITURE_MOTEUR_DC;
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0b10100);
         i2cAdresse = ECRITURE_STEPPER;
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0b10100);
     }
     
-    if (INTCON3bits.INT2F) { // drapeau d'interruption externe INT2
+    if (INTCON3bits.INT2F) { // Drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
         i2cAdresse = ECRITURE_MOTEUR_DC;
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-0b10100);
         i2cAdresse = ECRITURE_STEPPER;
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-0b10100);
     }
 
-    /** réception de l'adresse puis des data par l'EUSART configurée en mode
-      * détection d'adresse.
+    /** rDeclenchement des iterrptions pour l'EUSART
     */
-    
     if (PIR1bits.RC1IF) {
+        commandeEtat = COMMANDE_BLUETOOTH;
         uartReception();
-        /*RCSTA1bits.ADDEN = 0; // 
-        adresse = RCREG1;     //
-
-        while (!PIR1bits.RC1IF){
-            RCSTA1bits.ADDEN = 1;
-            data = RC1IF;
-            switch (adresse){
-                case ECRITURE_MOTEUR_DC:
-                    if (data > 0 && bloque_av == 0){
-                        i2cPrepareCommandePourEmission(adresse, data);
-                        bloque_ar = 0;}
-                    else if (data < 0 && bloque_ar == 0){
-                        i2cPrepareCommandePourEmission(adresse, data);
-                        bloque_av = 0;
-                    }else{
-                        break;
-                    }
-                    break;
-                    
-                case ECRITURE_STEPPER:
-                    if (data > 0 && bloque_av == 0){
-                        i2cPrepareCommandePourEmission(adresse, data);
-                        bloque_ar = 0;
-                    }
-                    else if (data < 0 && bloque_ar == 0){
-                        i2cPrepareCommandePourEmission(adresse, data);
-                        bloque_av = 0;
-                    }else{
-                        break;
-                    }
-                    break;
-                    
-                case ECRITURE_SERVO_DC:
-                    i2cPrepareCommandePourEmission(adresse, data);
-                    break;
-                    
-                case ECRITURE_SERVO_ST:
-                    i2cPrepareCommandePourEmission(adresse, data);
-                    break;
-                   
-            }
-        }*/
     }
     
-    //  Pas besoin d'envoyer des byte de PIC à HC-06
     if (PIR1bits.TX1IF) {
         uartTransmission();
     }
@@ -119,10 +86,16 @@ void maitreInterruptions() {
         }
     }
     
-    if (PIR1bits.SSP1IF) { // drapeau de fin de tâche master i2c
+    if (PIR1bits.SSP1IF) { // Drapeau de fin de tâche master i2c
         i2cMaitre();
         PIR1bits.SSP1IF = 0;
     }
+    
+    /*
+     if (je sais pas trop quoi - PWM) {
+        commandeEtat = COMMANDE_RC;
+    */
+    
 }
 
 /**
@@ -139,7 +112,7 @@ static void maitreInitialiseHardware() {
     
     // Prépare Temporisateur 1 pour 4 interruptions par sec. : 
     T1CONbits.TMR1CS = 0;       // Source FOSC/4
-    T1CONbits.T1CKPS = 11;      // Diviseur de de fréquence 1:8.
+    T1CONbits.T1CKPS = 0b11;    // Diviseur de de fréquence 1:8.
     T1CONbits.T1RD16 = 1;       // Compteur de 16 bits.
     T1CONbits.TMR1ON = 1;       // Active le temporisateur.
 
@@ -205,7 +178,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
                 bloque_av = 1;
-                printf("Un obstacle est a %d cm à l'avant", valeur);
+                printf("Un obstacle est devant a %d [cm].", valeur);
             }
             break;
             
@@ -214,7 +187,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
                 bloque_ar = 1;
-                printf("Un obstacle est a %d cm à l'arriere", valeur);
+                printf("Un obstacle est derriere a %d [cm].", valeur);
             }
             break;
             
@@ -222,7 +195,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
              if (valeur < 20){
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
-                printf("Un obstacle est a %d cm sur la droite", valeur);
+                printf("Un obstacle est a %d [cm] sur la droite", valeur);
             }
             break;
             
@@ -230,7 +203,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
              if (valeur < 20){
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
-                printf("Un obstacle est a %d cm sur la gauche", valeur);
+                printf("Un obstacle est a %d [cm] sur la gauche", valeur);
             }
             break;
     }           
@@ -245,31 +218,64 @@ void maitreMain(void) {
     i2cRappelCommande(receptionSonar);
     recepteurInitialiseHardware();
     
+    char buffer[40];
+    int dataValeur, angle;
+    
     while(1) {
-        char buffer[40];
-        char typeDeplacement, dataValeur, angle;
+        // Commande via Bluetooth (hyperterminal)
+        if (commandeEtat == COMMANDE_BLUETOOTH) {
+            printf("MENU UTILISATEUR\r\n");
+            printf("Seuence de comande :\r\n");
+            printf("Deplacement DC ou Deplacement stepper et angle.\r\n");
+            printf("Exemple de sequence :\r\n");
+            printf("Deplacement ? (DC : -100 <-> 100 [%%] ou stepper : -127 <-> 127 [pas])\r\n");
+            printf("87\r\n");
+            printf("Quel angle ? (tourner a droite : valeur positive)\r\n");
+            printf("-23\r\n\r\n");
+            printf("Deplacement ? (DC : -100 <-> 100 [%%] ou stepper : -127 <-> 127 [pas])\r\n");
+            gets(buffer);
+            printf("Vous avez dit: %s\r\n", buffer);
+            dataValeur = atoi(buffer);
+            printf("Quel angle ? (tourner a droite : valeur positive)\r\n");
+            gets(buffer);
+            printf("Vous avez dit: %s\r\n", buffer);
+            angle = atoi(buffer);
+            printf("Deplacement de %d avec un angle de %d.\r\n", dataValeur, angle);
+            
+            
+            // Commandes servo avant les commande moteurs, sinon pas de direction ou differees.
+            // Commande pour servo DC :
+            i2cPrepareCommandePourEmission(ECRITURE_SERVO_DC,(char)angle);
+            // Commande pour servo stepper :
+            i2cPrepareCommandePourEmission(ECRITURE_SERVO_ST,(char)angle);
 
-        printf("Salut !\r\n");
-        printf("Exemple de sequence de comande :\r\n");
-        printf("Deplacement + combien + angle\r\n");
-        printf("Quel type de deplacement ?\r\n");
-        printf("A : avancer ou R : Reculer\r\n");
-        printf("De combien ?\r\n");
-        printf("-100 a 100 : en %%\r\n");
-        printf("Quel angle ?\r\n");
-        printf("-100 a 100 : en %%\r\n");
-        printf("Quel type de deplacement ?\r\n");
-        gets(buffer);
-        printf("Vous avez dit: %s\r\n", buffer);
-        typeDeplacement = buffer[0];
-        printf("De combien ?\r\n");
-        gets(buffer);
-        printf("Vous avez dit: %s\r\n", buffer);
-        dataValeur = atoi(buffer);
-        printf("Quel angle ?\r\n");
-        gets(buffer);
-        printf("Vous avez dit: %s\r\n", buffer);
-        angle = atoi(buffer);
-        printf("Depacement: %c, de %d avec un angle de %d\r\n", typeDeplacement, dataValeur, angle);
+            if ((data > 0) && (bloque_av == 0)) {
+                // Commande pour DC :
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,(char)dataValeur);
+                // Commande pour stepper :
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,(char)dataValeur);
+                // Plus de d'obstacle à l'avant
+                bloque_ar = 0;
+            }
+            else if ((data > 0) && (bloque_av == 0)) {
+                // Commande pour DC :
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,(char)dataValeur);
+                // Commande pour stepper :
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,(char)dataValeur);
+                // Plus de d'obstacle à l'arriere
+                bloque_av = 0;
+            }
+        }
+        else {  // Commande via telecommande RC
+            printf("A present la la commande se fait via la telecommande RC.\r\n");
+            printf("Pressez un touche du clavier pour pour reprendre le controle via l'hyper terminal\r\n");
+            
+            /*
+             Je pense qu'il aura différents switch avec valeur issues des PWMs,
+             avec ta gestion des colisions.
+             * - Servo 
+             * - Valeur_deplacement
+             */
+        }
     }
 }
