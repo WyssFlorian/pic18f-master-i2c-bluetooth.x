@@ -81,10 +81,11 @@ void maitreInterruptions() {
                     i2cPrepareCommandePourEmission(adresse, data);
                     break;
                    
+            }
         }
-    }
-    if (PIR1bits.TX1IF) {
-        uartTransmission();
+        if (PIR1bits.TX1IF) {
+            uartTransmission();
+        }
     }
 
    if (PIR1bits.TMR1IF) {   // Interruption 4x par sec sur timer 1
@@ -116,12 +117,13 @@ void maitreInterruptions() {
         i2cMaitre();
         PIR1bits.SSP1IF = 0;
     }
+    
 }
 
 /**
  * Initialise le hardware pour le maître.
  */
-static void maitreInitialiseHardware() {
+void maitreInitialiseHardware() {
     
     // Horloge principale Fosc = 1MHz
     OSCCONbits.IRCF = 0b110;    // Mis @8MHz car problème avec en uart @1MHz
@@ -199,7 +201,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
                 bloque_av = 1;
-                printf("Un obstacle est à %d cm à l'avant", valeur);
+                printf("Un obstacle est a %d cm a l'avant", valeur);
             }
             break;
             
@@ -208,7 +210,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
                 bloque_ar = 1;
-                printf("Un obstacle est à %d cm à l'arriere", valeur);
+                printf("Un obstacle est a %d cm a l'arriere", valeur);
             }
             break;
             
@@ -216,7 +218,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
              if (valeur < 20){
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
-                printf("Un obstacle est à %d cm sur la droite", valeur);
+                printf("Un obstacle est a %d cm sur la droite", valeur);
             }
             break;
             
@@ -224,7 +226,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
              if (valeur < 20){
                 i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
                 i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
-                printf("Un obstacle est à %d cm sur la gauche", valeur);
+                printf("Un obstacle est a %d cm sur la gauche", valeur);
             }
             break;
     }           
@@ -239,9 +241,9 @@ void maitreMain(void) {
     i2cRappelCommande(receptionSonar);
     recepteurInitialiseHardware();
     
-    //while(1);
+    while(1);
     //*
-    while(1) {  // fait planter la simulation ! à corriger (accents par exemple)
+    /**while(1) {  // fait planter la simulation ! à corriger (accents par exemple)
         char buffer[40];
         int adresseDevice, dataValeur, angle;
 
@@ -269,5 +271,5 @@ void maitreMain(void) {
         angle = atoi(buffer);
         printf("Depacement: %d, de %d avec un angle de %d\r\n", adresseDevice, dataValeur, angle);
     }
-    //*/
+    */
 }
