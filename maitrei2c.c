@@ -22,17 +22,17 @@ void maitreInterruptions() {
     if (INTCON3bits.INT1F) { // drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
         i2cAdresse = ECRITURE_MOTEUR_DC;
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0b10100);
         i2cAdresse = ECRITURE_STEPPER;
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0b10100);
     }
     
     if (INTCON3bits.INT2F) { // drapeau d'interruption externe INT2
         INTCON3bits.INT2F = 0;
         i2cAdresse = ECRITURE_MOTEUR_DC;
-        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,-0b10100);
         i2cAdresse = ECRITURE_STEPPER;
-        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-20);
+        i2cPrepareCommandePourEmission(ECRITURE_STEPPER,-0b10100);
     }
 
     /** réception de l'adresse puis des data par l'EUSART configurée en mode
