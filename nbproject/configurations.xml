@@ -39,6 +39,7 @@
   <sourceRootList>
     <Elem>.</Elem>
     <Elem>../pic18f-i2c-servo.X</Elem>
+    <Elem>../pic18f-hc05-i2c.X</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
