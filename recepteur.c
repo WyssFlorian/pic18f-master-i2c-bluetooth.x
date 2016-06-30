@@ -10,22 +10,19 @@
 #define CAPTURE_FLANC_DESCENDANT 0b100
 
 
-void recepteurInitialiseHardware() {    
-    // Configuration du récepteur RC
-    
-     // Prépare le temporisateur 1 pour capture de signal
+void recepteurInitialiseHardware() {
+
+    // Prépare le temporisateur 1 pour capture de signal
     T1CONbits.TMR1CS = 0;       // Source est FOSC/4
     T1CONbits.T1CKPS = 2;       // Diviseur de fréquence 1:4, égale à TMR2.
     T1CONbits.T1RD16 = 1;       // Temporisateur de 16 bits.
     T1CONbits.TMR1ON = 1;       // Active le temporisateur.
     
-    // Active le module de capture PWM sur RB3 et RB4 :
-    
-    TRISBbits.RB3 = 1;          // Active RB3 comme entrée.
-    ANSELBbits.ANSB3 = 0;       // Active AN09 comme entrée digitale.
-    TRISBbits.RB4 = 1;          // Active RB4 comme entrée.
-    ANSELBbits.ANSB4 = 0;       // Active AN11 comme entrée digitale.
-    
+    // Configure les modules de capture CCP5 et CCP4
+    TRISAbits.RA4 = 1;          // Port RA4 comme entrée digitale.
+    TRISBbits.RB0 = 1;          // Port RB0 comme entrée...
+    ANSELBbits.ANSB0 = 0;       // ... digitale.
+
     CCP4CONbits.CCP4M = CAPTURE_FLANC_MONTANT;
     CCPTMRS1bits.C4TSEL = 0;    // Utilise le temporisateur 1.
     PIE4bits.CCP4IE = 1;        // Active les interruptions
@@ -49,7 +46,6 @@ void recepteurInitialiseHardware() {
 /**
  * Point d'entrée des interruptions basse priorité.
  */
-
 void recepteurInterruptions() {
     unsigned char p1, p2;
     
