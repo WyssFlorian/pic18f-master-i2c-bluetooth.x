@@ -37,6 +37,7 @@ void recepteurInitialiseHardware() {
     IPR1bits.RC1IP = 0;
     
     uartReinitialise();
+    //pwmReinitialise();
     
     // Configuration du récepteur RC
     // Active le module de capture PWM sur RB3 et RB4 :
@@ -57,13 +58,3 @@ void recepteurInitialiseHardware() {
  *void recepteur_rc() {
     
 } */
-
-
-
-void recepteurMain(void) {
-    recepteurInitialiseHardware();
-    pwmReinitialise();
-    //recepteur_rc();
-
-    while(1);
-}

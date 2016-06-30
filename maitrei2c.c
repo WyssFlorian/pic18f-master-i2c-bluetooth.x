@@ -222,9 +222,7 @@ void maitreMain(void) {
     i2cRappelCommande(receptionSonar);
     
     while(1) {
-        
-        
-        
+
         // Commande via Bluetooth (hyperterminal)
         if (commandeEtat == COMMANDE_BLUETOOTH) {
             
