@@ -2,6 +2,8 @@
 #include "maitrei2c.h"
 #include "i2c.h"
 #include "test.h"
+#include "recepteur.h"
+
 
 /**
  * Bits de configuration:
@@ -22,7 +24,8 @@
  */
 void low_priority interrupt interruptionsBassePriorite() {
     
-        maitreInterruptions();  
+        maitreInterruptions();
+        recepteurInterruptions();
 }
 
 /**
@@ -33,6 +36,7 @@ void low_priority interrupt interruptionsBassePriorite() {
 void main(void) {
   
     maitreMain();
+    recepteurMain();
     
     while(1);
 }

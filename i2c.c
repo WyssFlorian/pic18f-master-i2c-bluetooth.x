@@ -125,11 +125,11 @@ void i2cMaitre() {
  * @param adresse Adresse reçue par le bus I2C.
  * @return Adresse locale.
  */
-unsigned char convertitEnAdresseLocale(unsigned char adresse) {
+/*unsigned char convertitEnAdresseLocale(unsigned char adresse) {
     adresse >>= 1;
     adresse &= I2C_MASQUE_ADRESSES_LOCALES;
     return adresse;
-}
+}/*
 
 /** Liste des valeurs exposées par l'esclave I2C. */
 unsigned char i2cValeursExposees[I2C_NOMBRE_ADRESSES_PAR_ESCLAVE];
@@ -142,9 +142,9 @@ unsigned char i2cValeursExposees[I2C_NOMBRE_ADRESSES_PAR_ESCLAVE];
  * demandée par le maître).
  * @param valeur La valeur.
  */
-void i2cExposeValeur(unsigned char adresse, char valeur) {
+/*void i2cExposeValeur(unsigned char adresse, char valeur) {
     i2cValeursExposees[adresse] = valeur;
-}
+}*/
 
 /**
  * Automate esclave I2C.

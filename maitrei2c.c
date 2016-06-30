@@ -27,7 +27,6 @@
  * Point d'entrée des interruptions pour le maître.
  */
 void maitreInterruptions() {
-    static I2cAdresse i2cAdresse;
   
     if (INTCON3bits.INT1F) { // Drapeau d'interruption externe INT1
         INTCON3bits.INT1F = 0;
@@ -59,9 +58,9 @@ void maitreInterruptions() {
    //     PIR1bits.ADIF = 0;
    //}
     
-   if (PIR1bits.TMR1IF) {   // Interruption 4x par sec sur timer 1
-        PIR1bits.TMR1IF = 0;
-        TMR1 = 3036;
+   if (PIR2bits.TMR3IF) {   // Interruption 4x par sec sur timer 3
+        PIR2bits.TMR3IF = 0;
+        TMR3 = 3036;
         
         switch (compteurCapteur) {
             case 0:
@@ -88,12 +87,6 @@ void maitreInterruptions() {
         i2cMaitre();
         PIR1bits.SSP1IF = 0;
     }
-    
-    /*
-     if (je sais pas trop quoi - PWM) {
-        commandeEtat = COMMANDE_RC;
-    */
-    
 }
 
 /**
@@ -108,14 +101,14 @@ static void maitreInitialiseHardware() {
     ANSELB = 0x00;              // Désactive les convertisseurs A/D.
     ANSELC = 0x00;              // Désactive les convertisseurs A/D.
     
-    // Prépare Temporisateur 1 pour 4 interruptions par sec. : 
-    T1CONbits.TMR1CS = 0;       // Source FOSC/4
-    T1CONbits.T1CKPS = 0b11;    // Diviseur de de fréquence 1:8.
-    T1CONbits.T1RD16 = 1;       // Compteur de 16 bits.
-    T1CONbits.TMR1ON = 1;       // Active le temporisateur.
+    // Prépare Temporisateur 3 pour 4 interruptions par sec. : 
+    T3CONbits.TMR3CS = 0;       // Source FOSC/4
+    T3CONbits.T3CKPS = 0b11;    // Diviseur de de fréquence 1:8.
+    T3CONbits.T3RD16 = 1;       // Compteur de 16 bits.
+    T3CONbits.TMR3ON = 1;       // Active le temporisateur.
 
-    PIE1bits.TMR1IE = 1;        // Active les interruptions...
-    IPR1bits.TMR1IP = 0;        // ... de basse priorité.
+    PIE2bits.TMR3IE = 1;        // Active les interruptions...
+    IPR2bits.TMR3IP = 0;        // ... de basse priorité.
     
     // Interruptions INT1 et INT2:
     TRISBbits.RB1 = 1;          // Port RB1 comme entrée...
@@ -171,6 +164,41 @@ static void maitreInitialiseHardware() {
     INTCONbits.GIEL = 1;
 }
 
+/**
+ * Initialise le hardware pour le Bluetooth.
+ */
+void UARTInitialiseHardware() {
+    
+    // Pour une fréquence de 8MHz, ceci donne 9600 bauds :
+    TXSTA1bits.BRGH = 1;    // Mode haute vitesse.
+    BAUDCON1bits.BRG16 = 1; // Prise en compte du registre SPBRGH.
+    SPBRG = 207;            //Baudrate = FOSC / (4 * (N + 1)) = 9615Bauds.
+    SPBRGH = 0;
+
+    // Configure RC6 et RC7 comme entrées digitales, pour que
+    // la EUSART puisse en prendre le contrôle:
+    ANSELCbits.ANSC6 = 0;
+    ANSELCbits.ANSC7 = 0;
+    TRISCbits.RC6 = 1;
+    TRISCbits.RC7 = 1;
+   
+    // Configure l'EUSART:    
+    // (BRGH et BRG16 sont à leur valeurs par défaut)
+    // (TX9 est à sa valeur par défaut)
+    TXSTAbits.SYNC = 0;     // Mode asynchrone.
+    TXSTAbits.TXEN = 1;     // Active l'émetteur.
+    RCSTAbits.CREN = 1;     // Active le récepteur.
+    RCSTAbits.SPEN = 1;     // Active l'EUSART.
+    
+    // Active les interruptions (basse priorité):
+    PIE1bits.TX1IE = 1;
+    IPR1bits.TX1IP = 0;
+    PIE1bits.RC1IE = 1;
+    IPR1bits.RC1IP = 0;
+    
+    uartReinitialise();
+}
+
 void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
     switch (adr_i2c){
         case LECTURE_CAPTEUR_AV:
@@ -208,6 +236,48 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
             break;
     }           
 }
+            
+void reception_RC(unsigned char adr_i2c, unsigned char valeur){
+    
+        //commandeEtat = COMMANDE_RC;
+        
+        switch (adr_i2c){
+        case LECTURE_CAPTEUR_AV:
+            if (valeur < 50){
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
+                bloque_av = 1;
+                printf("RC: Un obstacle est devant a %d [cm].", valeur);
+            }
+            break;
+            
+        case LECTURE_CAPTEUR_AR:
+            if (valeur < 50){
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0);
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
+                bloque_ar = 1;
+                printf("RC: Un obstacle est derriere a %d [cm].", valeur);
+            }
+            break;
+            
+        case LECTURE_CAPTEUR_DR:
+             if (valeur < 20){
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0);
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
+                printf("RC: Un obstacle est a %d [cm] sur la droite", valeur);
+            }
+            break;
+            
+        case LECTURE_CAPTEUR_GA:
+             if (valeur < 20){
+                i2cPrepareCommandePourEmission(ECRITURE_MOTEUR_DC,0); 
+                i2cPrepareCommandePourEmission(ECRITURE_STEPPER,0);
+                printf("RC: Un obstacle est a %d [cm] sur la gauche", valeur);
+            }
+            break;
+    }  
+}
+
 
 /**
  * Point d'entrée pour l'émetteur de radio contrôle.
@@ -215,7 +285,7 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
 void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
-    recepteurInitialiseHardware();
+    UARTInitialiseHardware();
     
     char buffer[40];
     int dataValeur, angle;
@@ -272,12 +342,9 @@ void maitreMain(void) {
             printf("A present la la commande se fait via la telecommande RC.\r\n");
             printf("Pressez un touche du clavier pour reprendre le controle via l'hyper terminal\r\n");
             
-            /*
-             Je pense qu'il aura différents switch avec valeur issues des PWMs,
-             avec ta gestion des colisions.
-             * - Servo
-             * - Valeur_deplacement
-            */ 
+            // Je ne sais pas comment repasser en commande blootooth à partir d'une impulse clavier ...
+            
+            //commandeEtat = COMMANDE_BLUETOOTH;
         }
     }
 }

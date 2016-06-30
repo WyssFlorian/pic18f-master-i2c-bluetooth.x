@@ -1,45 +1,24 @@
 #include <xc.h>
+#include "pwm.h"
 #include "test.h"
 #include "recepteur.h"
-#include "uart.h"
+#include "i2c.h"
+#include "maitrei2c.h"
 
 
-/**
- * Initialise le hardware pour l'émetteur.
- */
-void recepteurInitialiseHardware() {
-    
-    // Pour une fréquence de 8MHz, ceci donne 9600 bauds :
-    TXSTA1bits.BRGH = 1;    // Mode haute vitesse.
-    BAUDCON1bits.BRG16 = 1; // Prise en compte du registre SPBRGH.
-    SPBRG = 207;            //Baudrate = FOSC / (4 * (N + 1)) = 9615Bauds.
-    SPBRGH = 0;
+#define CAPTURE_FLANC_MONTANT 0b101
+#define CAPTURE_FLANC_DESCENDANT 0b100
 
-    // Configure RC6 et RC7 comme entrées digitales, pour que
-    // la EUSART puisse en prendre le contrôle:
-    ANSELCbits.ANSC6 = 0;
-    ANSELCbits.ANSC7 = 0;
-    TRISCbits.RC6 = 1;
-    TRISCbits.RC7 = 1;
-   
-    // Configure l'EUSART:    
-    // (BRGH et BRG16 sont à leur valeurs par défaut)
-    // (TX9 est à sa valeur par défaut)
-    TXSTAbits.SYNC = 0;     // Mode asynchrone.
-    TXSTAbits.TXEN = 1;     // Active l'émetteur.
-    RCSTAbits.CREN = 1;     // Active le récepteur.
-    RCSTAbits.SPEN = 1;     // Active l'EUSART.
-    
-    // Active les interruptions (basse priorité):
-    PIE1bits.TX1IE = 1;
-    IPR1bits.TX1IP = 0;
-    PIE1bits.RC1IE = 1;
-    IPR1bits.RC1IP = 0;
-    
-    uartReinitialise();
-    //pwmReinitialise();
-    
+
+void recepteurInitialiseHardware() {    
     // Configuration du récepteur RC
+    
+     // Prépare le temporisateur 1 pour capture de signal
+    T1CONbits.TMR1CS = 0;       // Source est FOSC/4
+    T1CONbits.T1CKPS = 2;       // Diviseur de fréquence 1:4, égale à TMR2.
+    T1CONbits.T1RD16 = 1;       // Temporisateur de 16 bits.
+    T1CONbits.TMR1ON = 1;       // Active le temporisateur.
+    
     // Active le module de capture PWM sur RB3 et RB4 :
     
     TRISBbits.RB3 = 1;          // Active RB3 comme entrée.
@@ -47,14 +26,78 @@ void recepteurInitialiseHardware() {
     TRISBbits.RB4 = 1;          // Active RB4 comme entrée.
     ANSELBbits.ANSB4 = 0;       // Active AN11 comme entrée digitale.
     
-    // Configure PWM 1 pour réceptionner le signal de radio-contrôle:
+    CCP4CONbits.CCP4M = CAPTURE_FLANC_MONTANT;
+    CCPTMRS1bits.C4TSEL = 0;    // Utilise le temporisateur 1.
+    PIE4bits.CCP4IE = 1;        // Active les interruptions
+    IPR4bits.CCP4IP = 0;        // ... de basse priorité.
+
+    CCP5CONbits.CCP5M = CAPTURE_FLANC_MONTANT;
+    CCPTMRS1bits.C5TSEL = 0;    // Utilise le temporisateur 1.
+    PIE4bits.CCP5IE = 1;        // Active les interruptions...
+    IPR4bits.CCP5IP = 0;        // ... de basse priorité.
     
+    // Prépare Temporisateur 2 pour PWM (compte jusqu'à 125 en 2ms):
+    T2CONbits.T2CKPS = 1;       // Diviseur de fréquence 1:4
+    T2CONbits.T2OUTPS = 0;      // Pas de diviseur de fréquence à la sortie.
+    T2CONbits.TMR2ON = 1;       // Active le temporisateur.
     
+    PIE1bits.TMR2IE = 1;        // Active les interruptions ...
+    IPR1bits.TMR2IP = 0;        // ... de basse priorité ...
+    PIR1bits.TMR2IF = 0;        // ... pour le temporisateur 2.
 }
 
 /**
- * Point d'entrée pour le récepteur de radio contrôle.
+ * Point d'entrée des interruptions basse priorité.
+ */
 
- *void recepteur_rc() {
+void recepteurInterruptions() {
+    unsigned char p1, p2;
     
-} */
+    if (PIR1bits.TMR2IF) {
+        PIR1bits.TMR2IF = 0;
+        if (pwmEspacement()) {
+            p1 = pwmValeur(0);
+            p2 = pwmValeur(1);
+            reception_RC(ECRITURE_MOTEUR_DC,p2);
+            reception_RC(ECRITURE_STEPPER,p2);
+            reception_RC(ECRITURE_SERVO_DC,p1);
+            reception_RC(ECRITURE_SERVO_ST,p1);
+        } /*else {
+            CCPR3L = 0;
+            CCPR1L = 0;
+        }*/
+    }
+
+    if (PIR4bits.CCP4IF) {
+        if (PORTBbits.RB0) {
+            pwmDemarreCapture(1, CCPR4);
+            CCP4CONbits.CCP4M = CAPTURE_FLANC_DESCENDANT;
+        } else {
+            pwmCompleteCapture(1, CCPR4);            
+            CCP4CONbits.CCP4M = CAPTURE_FLANC_MONTANT;
+        }
+        PIR4bits.CCP4IF = 0;
+    }
+
+    if (PIR4bits.CCP5IF) {
+        if (PORTAbits.RA4) {
+            pwmDemarreCapture(0, CCPR5);
+            CCP5CONbits.CCP5M = CAPTURE_FLANC_DESCENDANT;
+        } else {
+            pwmCompleteCapture(0, CCPR5);            
+            CCP5CONbits.CCP5M = CAPTURE_FLANC_MONTANT;
+        }
+        PIR4bits.CCP5IF = 0;        
+    }
+}
+
+/**
+ * Point d'entrée pour l'émetteur de radio contrôle.
+ */
+void recepteurMain(void) {
+    
+    recepteurInitialiseHardware();
+    pwmReinitialise();
+
+    while(1);
+}
