@@ -33,7 +33,6 @@ void low_priority interrupt interruptionsBassePriorite() {
 void main(void) {
   
     maitreMain();
-    recepteurInitialiseHardware();
     
     while(1);
 }

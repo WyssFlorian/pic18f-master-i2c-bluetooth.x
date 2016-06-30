@@ -215,16 +215,19 @@ void receptionSonar(unsigned char adr_i2c, unsigned char valeur) {
 void maitreMain(void) {
     maitreInitialiseHardware();
     i2cReinitialise();
+    recepteurInitialiseHardware();
     
     char buffer[40];
     int dataValeur, angle;
+    i2cRappelCommande(receptionSonar);
     
     while(1) {
         
-        i2cRappelCommande(receptionSonar);
+        
         
         // Commande via Bluetooth (hyperterminal)
         if (commandeEtat == COMMANDE_BLUETOOTH) {
+            
             printf("MENU UTILISATEUR\r\n");
             printf("Seuence de comande :\r\n");
             printf("Deplacement DC ou Deplacement stepper et angle.\r\n");
